@@ -100,7 +100,12 @@ impl Accounts {
         recipient: &str,
         amount: u64,
     ) -> Result<(Tx, Tx), AccountingError> {
-        todo!();
+        // withdraw amount from sender
+        let w_tx = self.withdraw(sender, amount)?;
+        // deposit amount to recipient
+        let d_tx = self.deposit(recipient, amount)?;
+
+        Ok((w_tx, d_tx))
     }
 }
 
