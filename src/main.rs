@@ -64,7 +64,30 @@ impl Accounts {
     /// # Errors
     /// Attempted overflow
     pub fn withdraw(&mut self, signer: &str, amount: u64) -> Result<Tx, AccountingError> {
-        todo!();
+        // check if signer exists inside accounts hashmap
+        match self.accounts.get_mut(signer) {
+            // If account exists, start withdrawal:
+            Some(account_balance) => {
+                // subtract amount from account balance
+                (*account_balance)
+                    .checked_sub(amount)
+                    // if it's successful, update new account_balance to be subtraction result
+                    .and_then(|r| {
+                        *account_balance = r;
+                        Some(r)
+                    })
+                    .ok_or(
+                        // if it fails, then return AccountingError::AccountUnderFunded
+                        AccountingError::AccountUnderFunded(signer.to_string()),
+                    )
+                    .map(|_| Tx::Withdraw {
+                        account: signer.to_string(),
+                        amount: amount,
+                    })
+            }
+            // If account doesn't exist, return AccountingError::AccountNotFound
+            None => Err(AccountingError::AccountNotFound(signer.to_string())),
+        }
     }
 
     /// Withdraws the amount from the sender account and deposits it in the recipient account.
