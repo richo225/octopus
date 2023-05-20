@@ -4,19 +4,23 @@ use std::collections::HashMap;
 #[derive(Debug)]
 enum AccountingError {
     // Add variants here for account not found, account underfunded and account overfunded
+    AccountNotFound(String),
+    AccountOverFunded(String, u64),
+    AccountUnderFunded(String),
 }
 
 /// A transaction type. Transactions should be able to rebuild a ledger's state
 /// when they are applied in the same sequence to an empty state.
 #[derive(Debug)]
 pub enum Tx {
-    // Add variants for storing withdraw/deposit transactions
+    Deposit { account: String, amount: u64 },
+    Withdraw { account: String, amount: u64 },
 }
 
 /// A type for managing accounts and their current currency balance
 #[derive(Debug)]
 struct Accounts {
-    // Add a property `accounts` here
+    accounts: HashMap<String, u64>,
 }
 
 impl Accounts {
