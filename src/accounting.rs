@@ -90,3 +90,71 @@ impl Accounts {
         Ok((w_tx, d_tx))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    type TestResult = Result<(), AccountError>;
+
+    // unit tests for Accounts.withdraw()
+    // =========================================================================================================
+
+    #[test]
+    fn test_accounts_withdraw_successful() -> TestResult {
+        let mut ledger = Accounts::new();
+        ledger.deposit("test_account", 50)?;
+
+        let actual = ledger.withdraw("test_account", 10);
+        assert_eq!(
+            actual,
+            Ok(Tx::Withdraw {
+                account: "test_account".to_string(),
+                amount: 10,
+            })
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_accounts_withdraw_missing() -> TestResult {
+        let mut ledger = Accounts::new();
+
+        let actual = ledger.withdraw("non_existant_account", 10);
+        assert_eq!(
+            actual,
+            Err(AccountError::NotFound("non_exsitant_account".to_string()))
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_accounts_withdraw_underfunded() -> TestResult {
+        let mut ledger = Accounts::new();
+        ledger.deposit("test_account", 50)?;
+
+        let actual = ledger.withdraw("test_account", 60);
+        assert_eq!(
+            actual,
+            Err(AccountError::UnderFunded("test_account".to_string()))
+        );
+
+        Ok(())
+    }
+
+    // unit tests for Accounts.deposit()
+    // =========================================================================================================
+
+    // fn test_accounts_deposit_successful() -> TestResult {}
+    // fn test_accounts_deposit_missing() -> TestResult {}
+    // fn test_accounts_deposit_overfunded() -> TestResult {}
+
+    // unit tests for Accounts.send()
+    // =========================================================================================================
+
+    // fn test_accounts_send_successful() -> TestResult {}
+    // fn test_accounts_send_missing_sender() -> TestResult {}
+    // fn test_accounts_send_missing_recipient() -> TestResult {}
+}
