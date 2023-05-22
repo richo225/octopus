@@ -180,8 +180,44 @@ mod tests {
 
     // unit tests for Accounts.send()
     // =========================================================================================================
+    #[test]
+    fn test_accounts_send_successful() -> TestResult {
+        let mut ledger = Accounts::new();
+        ledger.deposit("sender", 50)?;
+        ledger.deposit("recipient", 10)?;
 
-    // fn test_accounts_send_successful() -> TestResult {}
-    // fn test_accounts_send_missing_sender() -> TestResult {}
-    // fn test_accounts_send_missing_recipient() -> TestResult {}
+        let (actual_tx_1, actual_tx_2) = ledger.send("sender", "recipient", 30)?;
+
+        assert_eq!(
+            actual_tx_1,
+            Tx::Withdraw {
+                account: "sender".to_string(),
+                amount: 30
+            }
+        );
+
+        assert_eq!(
+            actual_tx_2,
+            Tx::Deposit {
+                account: "recipient".to_string(),
+                amount: 30
+            }
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_accounts_send_missing_sender() -> TestResult {
+        let mut ledger = Accounts::new();
+        ledger.deposit("recipient", 10)?;
+
+        let actual = ledger.send("non_existant_account", "recipient", 30);
+        assert_eq!(
+            actual,
+            Err(AccountError::NotFound("non_existant_account".to_string()))
+        );
+
+        Ok(())
+    }
 }
