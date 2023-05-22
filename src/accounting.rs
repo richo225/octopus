@@ -1,4 +1,4 @@
-use crate::errors::ApplicationError;
+use crate::errors::AccountError;
 use crate::tx::Tx;
 use std::collections::HashMap;
 
@@ -19,18 +19,15 @@ impl Accounts {
     /// Either deposits the `amount` provided into the `signer` account or adds the amount to the existing account.
     /// # Errors
     /// Attempted overflow
-    pub fn deposit(&mut self, signer: &str, amount: u64) -> Result<Tx, ApplicationError> {
+    pub fn deposit(&mut self, signer: &str, amount: u64) -> Result<Tx, AccountError> {
         if let Some(account) = self.accounts.get_mut(signer) {
             (*account)
                 .checked_add(amount)
-                .and_then(|r| {
+                .map(|r| {
                     *account = r;
-                    Some(r)
+                    r
                 })
-                .ok_or(ApplicationError::AccountOverFunded(
-                    signer.to_string(),
-                    amount,
-                ))
+                .ok_or(AccountError::OverFunded(signer.to_string(), amount))
                 // Using map() here is an easy way to only manipulate the non-error result
                 .map(|_| Tx::Deposit {
                     account: signer.to_string(),
@@ -48,7 +45,7 @@ impl Accounts {
     /// Withdraws the `amount` from the `signer` account.
     /// # Errors
     /// Attempted overflow
-    pub fn withdraw(&mut self, signer: &str, amount: u64) -> Result<Tx, ApplicationError> {
+    pub fn withdraw(&mut self, signer: &str, amount: u64) -> Result<Tx, AccountError> {
         // check if signer exists inside accounts hashmap
         match self.accounts.get_mut(signer) {
             // If account exists, start withdrawal:
@@ -57,21 +54,21 @@ impl Accounts {
                 (*account_balance)
                     .checked_sub(amount)
                     // if it's successful, update new account_balance to be subtraction result
-                    .and_then(|r| {
+                    .map(|r| {
                         *account_balance = r;
-                        Some(r)
+                        r
                     })
                     .ok_or(
-                        // if it fails, then return error::ApplicationError::AccountUnderFunded
-                        ApplicationError::AccountUnderFunded(signer.to_string()),
+                        // if it fails, then return AccountError::UnderFunded
+                        AccountError::UnderFunded(signer.to_string()),
                     )
                     .map(|_| Tx::Withdraw {
                         account: signer.to_string(),
-                        amount: amount,
+                        amount,
                     })
             }
-            // If account doesn't exist, return error::ApplicationError::AccountNotFound
-            None => Err(ApplicationError::AccountNotFound(signer.to_string())),
+            // If account doesn't exist, return AccountError::NotFound
+            None => Err(AccountError::NotFound(signer.to_string())),
         }
     }
 
@@ -84,7 +81,7 @@ impl Accounts {
         sender: &str,
         recipient: &str,
         amount: u64,
-    ) -> Result<(Tx, Tx), ApplicationError> {
+    ) -> Result<(Tx, Tx), AccountError> {
         // withdraw amount from sender
         let w_tx = self.withdraw(sender, amount)?;
         // deposit amount to recipient

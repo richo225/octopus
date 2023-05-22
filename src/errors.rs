@@ -1,8 +1,8 @@
 /// An application-specific error type
 #[derive(Debug)]
-pub enum ApplicationError {
+pub enum AccountError {
     // Add variants here for account not found, account underfunded and account overfunded
-    AccountNotFound(String),
-    AccountOverFunded(String, u64),
-    AccountUnderFunded(String),
+    NotFound(String),
+    OverFunded(String, u64),
+    UnderFunded(String),
 }

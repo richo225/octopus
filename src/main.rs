@@ -50,7 +50,7 @@ fn process_actions(mut ledger: Accounts, action: &str) {
                 .parse()
                 .expect("Please input a valid number");
 
-            match ledger.send(&sender, &recipient.trim(), amount) {
+            match ledger.send(&sender, recipient.trim(), amount) {
                 Ok(tx) => {
                     println!(
                         "Sending {} from {} to {}: {:?}",
