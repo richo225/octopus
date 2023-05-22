@@ -4,6 +4,16 @@ mod tx;
 use crate::accounting::Accounts;
 use std::{io, process};
 
+fn main() {
+    let mut ledger = Accounts::new();
+    loop {
+        let input = read_from_stdin("Select operation: [deposit, withdraw, send, print, quit]:");
+        println!("Processing the {} action", input);
+
+        process_actions(&mut ledger, &input)
+    }
+}
+
 fn read_from_stdin(label: &str) -> String {
     println!("{label}");
 
@@ -15,7 +25,7 @@ fn read_from_stdin(label: &str) -> String {
     user_input.trim().to_owned()
 }
 
-fn process_actions(mut ledger: Accounts, action: &str) {
+fn process_actions(ledger: &mut Accounts, action: &str) {
     match action {
         "deposit" | "DEPOSIT" => {
             let signer = read_from_stdin("What is the signer account name?");
@@ -60,6 +70,9 @@ fn process_actions(mut ledger: Accounts, action: &str) {
                 Err(e) => eprintln!("Something went wrong: {:?}", e),
             };
         }
+        "print" => {
+            println!("Ledger: {:?}", ledger);
+        }
         "quit" => {
             println!("Exiting program....");
             process::exit(1);
@@ -67,16 +80,5 @@ fn process_actions(mut ledger: Accounts, action: &str) {
         &_ => {
             eprintln!("Invalid action: {:?}", action)
         }
-    }
-}
-
-fn main() {
-    let ledger = Accounts::new();
-    loop {
-        let input = read_from_stdin("What do you want to do?");
-        println!("Processing the {} action", input);
-
-        // "Remove the ledger clone later on(use reference instead!!!!!"
-        process_actions(ledger.clone(), &input)
     }
 }
