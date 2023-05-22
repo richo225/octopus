@@ -99,7 +99,6 @@ mod tests {
 
     // unit tests for Accounts.withdraw()
     // =========================================================================================================
-
     #[test]
     fn test_accounts_withdraw_successful() -> TestResult {
         let mut ledger = Accounts::new();
@@ -124,7 +123,7 @@ mod tests {
         let actual = ledger.withdraw("non_existant_account", 10);
         assert_eq!(
             actual,
-            Err(AccountError::NotFound("non_exsitant_account".to_string()))
+            Err(AccountError::NotFound("non_existant_account".to_string()))
         );
 
         Ok(())
@@ -146,10 +145,38 @@ mod tests {
 
     // unit tests for Accounts.deposit()
     // =========================================================================================================
+    #[test]
+    fn test_accounts_deposit_successful() -> TestResult {
+        let mut ledger = Accounts::new();
 
-    // fn test_accounts_deposit_successful() -> TestResult {}
-    // fn test_accounts_deposit_missing() -> TestResult {}
-    // fn test_accounts_deposit_overfunded() -> TestResult {}
+        let actual = ledger.deposit("test_account", 50);
+        assert_eq!(
+            actual,
+            Ok(Tx::Deposit {
+                account: "test_account".to_string(),
+                amount: 50
+            })
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_accounts_deposit_overfunded() -> TestResult {
+        let mut ledger = Accounts::new();
+        ledger.deposit("test_account", 10)?;
+
+        let actual = ledger.deposit("test_account", u64::MAX);
+        assert_eq!(
+            actual,
+            Err(AccountError::OverFunded(
+                "test_account".to_string(),
+                u64::MAX
+            ))
+        );
+
+        Ok(())
+    }
 
     // unit tests for Accounts.send()
     // =========================================================================================================
