@@ -123,7 +123,43 @@ mod tests {
 
     #[test]
     fn test_MatchingEngine_process_partially_match_order() {
-        todo!();
+        let mut matching_engine = MatchingEngine::new();
+
+        let alice_receipt = matching_engine
+            .process(Order {
+                price: 10,
+                amount: 1,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+            })
+            .unwrap();
+        assert_eq!(alice_receipt.matches, vec![]);
+        assert_eq!(alice_receipt.ordinal, 1);
+
+        let bob_receipt = matching_engine
+            .process(Order {
+                price: 10,
+                amount: 2,
+                side: Side::Buy,
+                signer: "BOB".to_string(),
+            })
+            .unwrap();
+
+        assert_eq!(
+            bob_receipt.matches,
+            vec![PartialOrder {
+                price: 10,
+                amount: 1,
+                remaining: 0,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+                ordinal: 1
+            }]
+        );
+
+        // Bob's order was only partially filled
+        assert_eq!(matching_engine.asks.len(), 0);
+        assert_eq!(matching_engine.bids.len(), 1);
     }
 
     #[test]
@@ -281,7 +317,30 @@ mod tests {
 
     #[test]
     fn test_MatchingEngine_process_no_match() {
-        todo!();
+        let mut matching_engine = MatchingEngine::new();
+
+        let alice_receipt = matching_engine
+            .process(Order {
+                price: 10,
+                amount: 2,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+            })
+            .unwrap();
+        assert_eq!(alice_receipt.matches, vec![]);
+        assert_eq!(alice_receipt.ordinal, 1);
+
+        let bob_receipt = matching_engine
+            .process(Order {
+                price: 11,
+                amount: 2,
+                side: Side::Sell,
+                signer: "BOB".to_string(),
+            })
+            .unwrap();
+
+        assert_eq!(bob_receipt.matches, vec![]);
+        assert_eq!(matching_engine.asks.len(), 2);
     }
 
     #[test]
