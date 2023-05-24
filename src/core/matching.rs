@@ -45,9 +45,24 @@ impl MatchingEngine {
         // Orders are matched to the opposite side
         let receipt = match &partial.side {
             Side::Buy => {
-                // Still need to implement this side of the matching
                 // Fetch all sell orders(asks) in the expected price range from the orderbook
-                todo!();
+                let orderbook_entry = self.asks.range_mut(u64::MIN..=partial.price);
+
+                let receipt = MatchingEngine::match_order(&partial, orderbook_entry, ordinal)?;
+
+                // Sum up all the amount in the matches
+                let matched_amount: u64 = receipt.matches.iter().map(|m| m.amount).sum();
+
+                // If order wasn't fully matched
+                if matched_amount < original_amount {
+                    partial.amount = original_amount - matched_amount;
+                    let price = partial.price;
+                    // Find any bids of the same price or insert default as a min-heap
+                    let bids = self.bids.entry(price).or_insert(vec![].into());
+                    bids.push(partial)
+                }
+
+                receipt
             }
             Side::Sell => {
                 // Fetch all buy orders(bids) in the expected price range from the orderbook
