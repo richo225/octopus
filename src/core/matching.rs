@@ -55,6 +55,8 @@ impl MatchingEngine {
 
                 // If order wasn't fully matched
                 if matched_amount < original_amount {
+                    // 🚨 🚨 🚨 🚨 🚨 🚨
+                    // TODO - Use the take_from() on PartialOrder
                     partial.amount = original_amount - matched_amount;
                     let price = partial.price;
                     // Find any bids of the same price or insert default as a min-heap
