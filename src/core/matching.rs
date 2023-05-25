@@ -118,41 +118,44 @@ impl MatchingEngine {
             // The iterator contains all orderbook_entry of a price point
             match orderbook_entry.next() {
                 Some((_price, orderbook_entry)) => {
+                    // store any self matches or partially filled orderbook entries to add back after loop
+                    let mut orderbook_returns = vec![];
+
                     // 1. remove the Order with the lowest sequence nr from the orderbook entry
                     // Orderbook entry is a Min-heap so pop() returns smallest value
-                    match orderbook_entry.pop() {
-                        Some(mut order_book_order) => {
-                            // 3. subtract the amount from your current order and decide
-
-                            let remaining_amount_after_match: i64 =
-                                remaining_amount as i64 - order_book_order.remaining as i64;
-
-                            //   a. if something left (partial match) add the order book order to the order matches and continue from 1
-                            //  b. if 0 is left (exact full match), add the order book order to the order matches
-                            if remaining_amount_after_match >= 0 {
-                                order_book_order.remaining = 0;
-                                remaining_amount -= order_book_order.remaining;
-
-                                matches.push(order_book_order);
-                            } else {
-                                //   c. if negative is left (full match), split the Order into two, add one to matches and one into the orderbook entry
-                                order_book_order.remaining -= remaining_amount;
-                                remaining_amount = 0;
-
-                                matches.push(order_book_order.clone());
-                                orderbook_entry.push(order_book_order);
-                            }
+                    'pop: while let Some(mut entry) = orderbook_entry.pop() {
+                        // 2. skip over if it's their own order
+                        if entry.signer == order.signer {
+                            orderbook_returns.push(entry.clone());
+                            continue 'pop;
                         }
-                        None => {} // Break the entire loop as no orders left in book
+
+                        // 3. subtract the entry remaining amount from the current order amount
+                        //  a. if something left (partial match) add the order book order to the order matches and continue from 1
+                        //  b. if 0 is left (exact full match), do the same
+                        if (remaining_amount as i64 - entry.remaining as i64) >= 0 {
+                            entry.remaining = 0;
+                            remaining_amount -= entry.remaining;
+
+                            matches.push(entry);
+                        } else {
+                            //   c. if negative is left (full match), split the Order into two, add one to matches and one back into the orderbook entry
+                            entry.remaining -= remaining_amount;
+                            remaining_amount = 0;
+
+                            orderbook_returns.push(entry.clone());
+                            matches.push(entry);
+                        }
                     }
 
-                    // 2. skip over if it's your own order
-
-                    // 4. repeat until the order has been filled to its fullest (remaining amount is 0)
+                    orderbook_returns
+                        .into_iter()
+                        .for_each(|m| orderbook_entry.push(m));
                 }
                 // Nothing left to match with
                 None => break 'outer,
             }
+            // 4. repeat until the order has been filled to its fullest (remaining amount is 0)
         }
         Ok(Receipt { ordinal, matches })
     }
