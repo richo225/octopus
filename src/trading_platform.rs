@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BinaryHeap};
 
 use crate::{
     accounting::Accounts,
-    core::{MatchingEngine, Order, PartialOrder, Side},
+    core::{MatchingEngine, Order, PartialOrder, Receipt, Side},
     errors::AccountError,
     tx::Tx,
 };
@@ -38,12 +38,22 @@ impl TradingPlatform {
 
     /// Deposit funds
     pub fn deposit(&mut self, signer: &str, amount: u64) -> Result<Tx, AccountError> {
-        todo!();
+        let operation: Result<Tx, AccountError> = self.accounts.deposit(signer, amount);
+        operation.map(|tx| {
+            self.transactions.push(tx.clone());
+
+            tx
+        })
     }
 
     /// Withdraw funds
     pub fn withdraw(&mut self, signer: &str, amount: u64) -> Result<Tx, AccountError> {
-        todo!();
+        let operation: Result<Tx, AccountError> = self.accounts.withdraw(signer, amount);
+        operation.map(|tx| {
+            self.transactions.push(tx.clone());
+
+            tx
+        })
     }
 
     /// Transfer funds between sender and recipient
@@ -53,12 +63,25 @@ impl TradingPlatform {
         recipient: &str,
         amount: u64,
     ) -> Result<(Tx, Tx), AccountError> {
-        todo!();
+        let operation: Result<(Tx, Tx), AccountError> =
+            self.accounts.send(sender, recipient, amount);
+        operation.map(|tx: (Tx, Tx)| {
+            // why clone ahhhh
+            // need to work out vec of structs ownership!!!
+            // 😭
+            // 😭
+            // 😭
+            let cloned_tx = tx.clone();
+            self.transactions.push(cloned_tx.0);
+            self.transactions.push(cloned_tx.1);
+
+            tx
+        })
     }
 
     /// Process a given order and apply the outcome to the accounts involved. Note that there are very few safeguards in place.
     pub fn order(&mut self, order: Order) -> Result<Receipt, AccountError> {
-        todo!();
+        todo!()
     }
 }
 
