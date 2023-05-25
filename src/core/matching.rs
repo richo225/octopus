@@ -92,6 +92,11 @@ impl MatchingEngine {
         Ok(receipt)
     }
 
+    // buy order comes in
+    // iterate through all sell orders in book
+    // take the first order book order
+    // see if it is enough to fill the buy order
+
     /// Matches an order to the provided order book side.
     /// # Parameters
     /// - `order`: the order to match to the book
@@ -105,21 +110,51 @@ impl MatchingEngine {
     where
         T: Iterator<Item = (&'a u64, &'a mut BinaryHeap<PartialOrder>)>,
     {
-        let mut remaining_amount = order.amount;
-        let mut matches = vec![];
+        let mut remaining_amount: u64 = order.amount;
+        let mut matches: Vec<PartialOrder> = vec![];
 
         // Each matching position's amount is subtracted
         'outer: while remaining_amount > 0 {
             // The iterator contains all orderbook_entry of a price point
             match orderbook_entry.next() {
-                Some((price, orderbook_entry)) => {
-                    // 1 remove the Order with the lowest sequence nr from the orderbook entry
-                    // 2 skip over if it's your own order
-                    // 3 subtract the amount from your current order and decide
-                    //   a. is there anything left from the match? split the Order into two and put one back into the orderbook entry
-                    //   b. if nothing is left, add the full order to your matches and continue from 1
-                    // 4 repeat until the order has been filled to its fullest (remaining amount is 0)
-                    todo!()
+                Some((_price, orderbook_entry)) => {
+                    // 1. remove the Order with the lowest sequence nr from the orderbook entry
+                    // Orderbook entry is a Min-heap so pop() returns smallest value
+                    match orderbook_entry.pop() {
+                        Some(mut order_book_order) => {
+                            // 3. subtract the amount from your current order and decide
+
+                            let remaining_amount_after_match: i64 =
+                                remaining_amount as i64 - order_book_order.remaining as i64;
+
+                            //   a. if something left (partial match) add the order book order to the order matches and continue from 1
+                            if remaining_amount_after_match > 0 {
+                                order_book_order.remaining = 0;
+                                remaining_amount -= order_book_order.remaining;
+
+                                matches.push(order_book_order);
+
+                            //  b. if 0 is left (exact full match), add the order book order to the order matches
+                            } else if remaining_amount_after_match == 0 {
+                                order_book_order.remaining = 0;
+                                remaining_amount -= order_book_order.remaining;
+
+                                matches.push(order_book_order);
+                            } else {
+                                //   c. if negative is left (full match), split the Order into two, add one to matches and one into the orderbook entry
+                                order_book_order.remaining -= remaining_amount;
+                                remaining_amount = 0;
+
+                                matches.push(order_book_order.clone());
+                                orderbook_entry.push(order_book_order);
+                            }
+                        }
+                        None => {} // Break the entire loop as no orders left in book
+                    }
+
+                    // 2. skip over if it's your own order
+
+                    // 4. repeat until the order has been filled to its fullest (remaining amount is 0)
                 }
                 // Nothing left to match with
                 None => break 'outer,
@@ -215,6 +250,47 @@ mod tests {
 
         // A fully matched order doesn't remain in the book
         assert!(matching_engine.asks.is_empty());
+        assert!(matching_engine.bids.is_empty());
+    }
+
+    #[test]
+    fn test_MatchingEngine_process_fully_match_order_overfill() {
+        let mut matching_engine = MatchingEngine::new();
+
+        let alice_receipt = matching_engine
+            .process(Order {
+                price: 10,
+                amount: 3,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+            })
+            .unwrap();
+        assert_eq!(alice_receipt.matches, vec![]);
+        assert_eq!(alice_receipt.ordinal, 1);
+
+        let bob_receipt = matching_engine
+            .process(Order {
+                price: 10,
+                amount: 1,
+                side: Side::Buy,
+                signer: "BOB".to_string(),
+            })
+            .unwrap();
+
+        assert_eq!(
+            bob_receipt.matches,
+            vec![PartialOrder {
+                price: 10,
+                amount: 3,
+                remaining: 2,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+                ordinal: 1
+            }]
+        );
+
+        // A sell order with an updated remaining is added to the book
+        assert_eq!(matching_engine.asks.len(), 1);
         assert!(matching_engine.bids.is_empty());
     }
 
@@ -361,7 +437,9 @@ mod tests {
     #[test]
     fn test_MatchingEngine_process_increment_ordinal_matching_engine() {
         let mut matching_engine = MatchingEngine::new();
+
         assert_eq!(matching_engine.ordinal, 0);
+
         let receipt = matching_engine
             .process(Order {
                 price: 10,
