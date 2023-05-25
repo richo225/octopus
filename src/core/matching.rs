@@ -128,14 +128,8 @@ impl MatchingEngine {
                                 remaining_amount as i64 - order_book_order.remaining as i64;
 
                             //   a. if something left (partial match) add the order book order to the order matches and continue from 1
-                            if remaining_amount_after_match > 0 {
-                                order_book_order.remaining = 0;
-                                remaining_amount -= order_book_order.remaining;
-
-                                matches.push(order_book_order);
-
                             //  b. if 0 is left (exact full match), add the order book order to the order matches
-                            } else if remaining_amount_after_match == 0 {
+                            if remaining_amount_after_match >= 0 {
                                 order_book_order.remaining = 0;
                                 remaining_amount -= order_book_order.remaining;
 
