@@ -33,7 +33,7 @@ impl TradingPlatform {
 
     /// Fetch total price of user account
     pub fn balance_of(&mut self, signer: &str) -> Result<&u64, AccountError> {
-        todo!();
+        self.accounts.balance_of(signer)
     }
 
     /// Deposit funds
