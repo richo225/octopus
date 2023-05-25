@@ -1,4 +1,4 @@
-use std::cmp::Reverse;
+use std::cmp::{Ordering, Reverse};
 
 /// Simplified side of a position as well as order.
 #[derive(Clone, PartialOrd, PartialEq, Eq, Debug, Ord)]
@@ -60,7 +60,7 @@ pub struct PartialOrder {
 }
 
 impl PartialOrd for PartialOrder {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // this reverses the comparison to create a min heap
         Reverse(self.ordinal).partial_cmp(&Reverse(other.ordinal))
     }

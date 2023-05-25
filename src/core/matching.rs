@@ -92,11 +92,6 @@ impl MatchingEngine {
         Ok(receipt)
     }
 
-    // buy order comes in
-    // iterate through all sell orders in book
-    // take the first order book order
-    // see if it is enough to fill the buy order
-
     /// Matches an order to the provided order book side.
     /// # Parameters
     /// - `order`: the order to match to the book
@@ -139,7 +134,7 @@ impl MatchingEngine {
 
                             matches.push(entry);
                         } else {
-                            //   c. if negative is left (full match), split the Order into two, add one to matches and one back into the orderbook entry
+                            // c. if negative is left (full match), split the Order into two, add one to matches and one back into the orderbook entry
                             entry.remaining -= remaining_amount;
                             remaining_amount = 0;
 
