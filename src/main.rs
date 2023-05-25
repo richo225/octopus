@@ -1,6 +1,7 @@
 mod accounting;
 mod core;
 mod errors;
+mod trading_platform;
 mod tx;
 use crate::accounting::Accounts;
 use std::{io, process};
