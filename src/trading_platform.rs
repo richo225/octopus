@@ -81,6 +81,25 @@ impl TradingPlatform {
 
     /// Process a given order and apply the outcome to the accounts involved. Note that there are very few safeguards in place.
     pub fn order(&mut self, order: Order) -> Result<Receipt, AccountError> {
+        let signer = &order.signer;
+
+        // 1. Check if signer has an account
+        let balance = self.balance_of(signer)?;
+
+        // 2. Check if buy order signer has enough money in account
+        let total_cost = order.amount * order.price;
+        balance
+            .checked_sub(total_cost)
+            .ok_or(AccountError::UnderFunded(signer.to_string()))?;
+
+        // 3. Process the order by the engine
+        let receipt = self.engine.process(order)?;
+
+        // 4. Send off the receipt to another function to make the trades
+        self.make_trade(&receipt)
+    }
+
+    fn make_trade(&self, receipt: &Receipt) -> Result<Receipt, AccountError> {
         todo!()
     }
 }
