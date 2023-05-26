@@ -7,8 +7,8 @@ use crate::{
 
 pub struct TradingPlatform {
     engine: MatchingEngine,
-    accounts: Accounts,
-    transactions: Vec<Tx>,
+    pub accounts: Accounts,
+    pub transactions: Vec<Tx>,
 }
 
 impl TradingPlatform {
