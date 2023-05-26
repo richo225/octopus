@@ -78,11 +78,10 @@ pub struct Receipt {
 
 impl PartialOrder {
     /// Splits one [`PartialOrder`] into two by taking a defined `take` amount
-    pub fn take_from(pos: &mut PartialOrder, take: u64, price: u64) -> PartialOrder {
+    pub fn take_from(pos: &mut PartialOrder, take: u64) -> PartialOrder {
         pos.remaining -= take;
         let mut new = pos.clone();
         new.amount = take;
-        new.price = price;
         new
     }
 }

@@ -16,6 +16,12 @@ impl Accounts {
         }
     }
 
+    pub fn balance_of(&mut self, signer: &str) -> Result<&u64, AccountError> {
+        self.accounts
+            .get(signer)
+            .ok_or(AccountError::NotFound(signer.to_string()))
+    }
+
     /// Either deposits the `amount` provided into the `signer` account or adds the amount to the existing account.
     /// # Errors
     /// Attempted overflow
