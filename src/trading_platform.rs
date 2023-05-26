@@ -1,5 +1,3 @@
-use std::collections::{BTreeMap, BinaryHeap};
-
 use crate::{
     accounting::Accounts,
     core::{MatchingEngine, Order, PartialOrder, Receipt, Side},
@@ -23,14 +21,18 @@ impl TradingPlatform {
     }
 
     /// Fetches the complete order book at this time
-    pub fn orderbook(&self) -> Vec<PartialOrder> {
-        let mut treemap: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
-        self.engine.asks.clone_into(&mut treemap);
-        self.engine.bids.clone_into(&mut treemap);
-
+    pub fn orderbook(&mut self) -> Vec<PartialOrder> {
         let mut orderbook = Vec::new();
-        for (_price, heap) in treemap {
-            let v = heap.into_vec();
+
+        // Cannot merge the two BTreeMaps as keys not unique. Must convert to vecs first
+        for (_price, heap) in &self.engine.asks {
+            // Have to clone as into_vec() consumes the heap
+            let v = heap.clone().into_vec();
+            orderbook.push(v);
+        }
+
+        for (_price, heap) in &self.engine.bids {
+            let v = heap.clone().into_vec();
             orderbook.push(v);
         }
 
