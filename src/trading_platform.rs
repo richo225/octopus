@@ -7,8 +7,8 @@ use crate::{
 
 pub struct TradingPlatform {
     engine: MatchingEngine,
-    accounts: Accounts,
-    transactions: Vec<Tx>,
+    pub accounts: Accounts,
+    pub transactions: Vec<Tx>,
 }
 
 impl TradingPlatform {
@@ -25,13 +25,13 @@ impl TradingPlatform {
         let mut orderbook = Vec::new();
 
         // Cannot merge the two BTreeMaps as keys not unique. Must convert to vecs first
-        for (_price, heap) in &self.engine.asks {
+        for heap in self.engine.asks.values() {
             // Have to clone as into_vec() consumes the heap
             let v = heap.clone().into_vec();
             orderbook.push(v);
         }
 
-        for (_price, heap) in &self.engine.bids {
+        for heap in self.engine.bids.values() {
             let v = heap.clone().into_vec();
             orderbook.push(v);
         }
