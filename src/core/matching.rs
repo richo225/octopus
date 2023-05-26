@@ -55,8 +55,6 @@ impl MatchingEngine {
 
                 // If order wasn't fully matched
                 if matched_amount < original_amount {
-                    // 🚨 🚨 🚨 🚨 🚨 🚨
-                    // TODO - Use the take_from() on PartialOrder
                     partial.amount = original_amount - matched_amount;
                     let price = partial.price;
                     // Find any bids of the same price or insert default as a min-heap
@@ -136,12 +134,11 @@ impl MatchingEngine {
 
                             matches.push(entry);
                         } else {
-                            // c. if negative is left (full match), split the Order into two, add one to matches and one back into the orderbook entry
-                            entry.remaining -= remaining_amount;
-                            remaining_amount = 0;
-
-                            orderbook_returns.push(entry.clone());
+                            // c. if negative is left (full match), split the Order into two, add original to matches and clone into the orderbook entry
+                            orderbook_returns
+                                .push(PartialOrder::take_from(&mut entry, remaining_amount));
                             matches.push(entry);
+                            remaining_amount = 0;
                         }
                     }
 
