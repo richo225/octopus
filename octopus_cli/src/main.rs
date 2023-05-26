@@ -1,13 +1,12 @@
 mod accounting;
 mod core;
-mod errors;
 mod trading_platform;
-mod tx;
+
+use crate::core::{Order, Side};
+use octopus_common::{errors, tx};
 use trading_platform::TradingPlatform;
 
 use std::{io, process};
-
-use crate::core::{Order, Side};
 
 fn main() {
     let mut trading_platform = TradingPlatform::new();

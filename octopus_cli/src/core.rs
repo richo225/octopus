@@ -1,5 +1,4 @@
 mod matching;
-mod types;
 
 pub use matching::MatchingEngine;
-pub use types::*;
+pub use octopus_common::types::*;
