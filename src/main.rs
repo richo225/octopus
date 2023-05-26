@@ -13,7 +13,15 @@ fn main() {
     let mut trading_platform = TradingPlatform::new();
     loop {
         let input = read_from_stdin(
-            "Select operation: | deposit | withdraw | send | submit_order | orderbook | accounts | txlog | quit |",
+            "Select operation:
+            -> deposit
+            -> withdraw
+            -> send
+            -> submit_order
+            -> orderbook
+            -> accounts
+            -> txlog
+            -> quit",
         );
         process_actions(&mut trading_platform, &input)
     }
@@ -111,15 +119,25 @@ fn process_actions(trading_platform: &mut TradingPlatform, action: &str) {
         }
         "orderbook" => {
             println!("Printing orderbook....");
-            println!("{:?}", trading_platform.orderbook())
+            trading_platform
+                .orderbook()
+                .iter()
+                .for_each(|po| println!("{:?}", po))
         }
         "accounts" => {
             println!("Printing accounts....");
-            println!("{:?}", trading_platform.accounts)
+            trading_platform
+                .accounts
+                .accounts
+                .iter()
+                .for_each(|acc| println!("{:?}", acc))
         }
         "txlog" => {
             println!("Printing txlog....");
-            println!("{:?}", trading_platform.transactions)
+            trading_platform
+                .transactions
+                .iter()
+                .for_each(|tx| println!("{:?}", tx))
         }
         "quit" => {
             println!("Exiting program....");

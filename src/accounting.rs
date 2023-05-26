@@ -5,7 +5,7 @@ use std::collections::HashMap;
 /// A type for managing accounts and their current currency balance
 #[derive(Debug, Clone)]
 pub struct Accounts {
-    accounts: HashMap<String, u64>,
+    pub accounts: HashMap<String, u64>,
 }
 
 impl Accounts {
