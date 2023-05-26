@@ -1,2 +1,2 @@
 [workspace]
-members = ["octopus_cli", "octopus_common"]
+members = ["octopus_cli", "octopus_common", "octopus_web"]
