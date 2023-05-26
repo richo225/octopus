@@ -23,12 +23,18 @@ impl TradingPlatform {
     }
 
     /// Fetches the complete order book at this time
-    pub fn orderbook(&self) {
-        let mut orderbook: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
-        self.engine.asks.clone_into(&mut orderbook);
-        self.engine.bids.clone_into(&mut orderbook);
-        // finish off iteration
-        println!("{:?}", orderbook);
+    pub fn orderbook(&self) -> Vec<PartialOrder> {
+        let mut treemap: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
+        self.engine.asks.clone_into(&mut treemap);
+        self.engine.bids.clone_into(&mut treemap);
+
+        let mut orderbook = Vec::new();
+        for (_price, heap) in treemap {
+            let v = heap.into_vec();
+            orderbook.push(v);
+        }
+
+        orderbook.concat()
     }
 
     /// Fetch total price of user account
@@ -98,14 +104,14 @@ impl TradingPlatform {
         match order.side {
             // 4.If the order is BUY, send the total price to each of the matches
             Side::Buy => {
-                for po in receipt.clone().matches {
+                for po in &receipt.matches {
                     let total_realized = po.amount * po.price;
                     self.send(signer, &po.signer, total_realized)?;
                 }
             }
             // 5.If the order is SELL, send the total price from each of the matches
             Side::Sell => {
-                for po in receipt.clone().matches {
+                for po in &receipt.matches {
                     let total_realized = po.amount * po.price;
                     self.send(&po.signer, signer, total_realized)?;
                 }
@@ -124,7 +130,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_TradingPlatform_order_requires_deposit_to_order() {
         let mut trading_platform = TradingPlatform::new();
 
@@ -366,39 +371,39 @@ mod tests {
         assert_eq!(trading_platform.accounts.balance_of("CHARLIE"), Ok(&110));
     }
 
-    // #[test]
-    // fn test_TradingPlatform_order_no_match_updates_accounts() {
-    //     let mut trading_platform = TradingPlatform::new();
+    #[test]
+    fn test_TradingPlatform_order_no_match_updates_accounts() {
+        let mut trading_platform = TradingPlatform::new();
 
-    //     // Set up accounts
-    //     assert!(trading_platform.accounts.deposit("ALICE", 100).is_ok());
-    //     assert!(trading_platform.accounts.deposit("BOB", 100).is_ok());
+        // Set up accounts
+        assert!(trading_platform.accounts.deposit("ALICE", 100).is_ok());
+        assert!(trading_platform.accounts.deposit("BOB", 100).is_ok());
 
-    //     let alice_receipt = trading_platform
-    //         .order(Order {
-    //             price: 10,
-    //             amount: 2,
-    //             side: Side::Sell,
-    //             signer: "ALICE".to_string(),
-    //         })
-    //         .unwrap();
-    //     assert_eq!(alice_receipt.matches, vec![]);
-    //     assert_eq!(alice_receipt.ordinal, 1);
+        let alice_receipt = trading_platform
+            .order(Order {
+                price: 10,
+                amount: 2,
+                side: Side::Sell,
+                signer: "ALICE".to_string(),
+            })
+            .unwrap();
+        assert_eq!(alice_receipt.matches, vec![]);
+        assert_eq!(alice_receipt.ordinal, 1);
 
-    //     let bob_receipt = trading_platform
-    //         .order(Order {
-    //             price: 11,
-    //             amount: 2,
-    //             side: Side::Sell,
-    //             signer: "BOB".to_string(),
-    //         })
-    //         .unwrap();
+        let bob_receipt = trading_platform
+            .order(Order {
+                price: 11,
+                amount: 2,
+                side: Side::Sell,
+                signer: "BOB".to_string(),
+            })
+            .unwrap();
 
-    //     assert_eq!(bob_receipt.matches, vec![]);
-    //     assert_eq!(trading_platform.orderbook().len(), 2);
+        assert_eq!(bob_receipt.matches, vec![]);
+        assert_eq!(trading_platform.orderbook().len(), 2);
 
-    //     // Check the account balances
-    //     assert_eq!(trading_platform.accounts.balance_of("ALICE"), Ok(&100));
-    //     assert_eq!(trading_platform.accounts.balance_of("BOB"), Ok(&100));
-    // }
+        // Check the account balances
+        assert_eq!(trading_platform.accounts.balance_of("ALICE"), Ok(&100));
+        assert_eq!(trading_platform.accounts.balance_of("BOB"), Ok(&100));
+    }
 }
