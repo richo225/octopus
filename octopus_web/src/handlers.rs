@@ -1,7 +1,9 @@
-use crate::core::Side;
+use crate::{core::Side, trading_platform::TradingPlatform};
 use octopus_common::errors::AccountError;
 
 use serde::Deserialize;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use warp::reject::Reject;
 
 #[derive(Debug)]
@@ -47,22 +49,32 @@ pub async fn hello() -> Result<impl warp::Reply, warp::Rejection> {
 }
 
 // GET /accounts
-pub async fn accounts() -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn accounts(
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!("List of accounts"))
 }
 
 // GET /orderbook
-pub async fn orderbook() -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn orderbook(
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!("List of orders"))
 }
 
 // GET /account?signer=
-pub async fn account(args: AccountArgs) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn account(
+    args: AccountArgs,
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!("Balance of specific account for {}", args.signer))
 }
 
 // POST /account/deposit
-pub async fn deposit(args: DepositArgs) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn deposit(
+    args: DepositArgs,
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!(
         "Depositing {} to account {}",
         args.amount, args.signer
@@ -70,7 +82,10 @@ pub async fn deposit(args: DepositArgs) -> Result<impl warp::Reply, warp::Reject
 }
 
 // POST /account/withdraw
-pub async fn withdraw(args: WithdrawArgs) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn withdraw(
+    args: WithdrawArgs,
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!(
         "Withdrawing {} from account {}",
         args.amount, args.signer
@@ -78,7 +93,10 @@ pub async fn withdraw(args: WithdrawArgs) -> Result<impl warp::Reply, warp::Reje
 }
 
 // POST /account/send
-pub async fn send(args: SendArgs) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn send(
+    args: SendArgs,
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!(
         "Sending {} from account {} to account {}",
         args.amount, args.signer, args.recipient
@@ -86,6 +104,9 @@ pub async fn send(args: SendArgs) -> Result<impl warp::Reply, warp::Rejection> {
 }
 
 // POST /order
-pub async fn order(_args: OrderArgs) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn order(
+    _args: OrderArgs,
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     Ok(format!("Submitting order"))
 }
