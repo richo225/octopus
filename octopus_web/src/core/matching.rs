@@ -1,9 +1,7 @@
 use std::collections::{BTreeMap, BinaryHeap};
 
-use crate::{
-    core::{Order, Receipt, Side},
-    errors::AccountError,
-};
+use crate::core::{Order, Receipt, Side};
+use octopus_common::errors::AccountError;
 
 use super::PartialOrder;
 
