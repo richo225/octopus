@@ -1,53 +1,13 @@
 mod accounting;
 mod core;
+mod handlers;
 mod trading_platform;
 
-extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
+extern crate pretty_env_logger;
 
-use crate::core::Side;
-use octopus_common::{errors::AccountError, tx};
-
-use serde::Deserialize;
-use warp::{reject::Reject, Filter};
-
-#[derive(Debug)]
-struct OctopusError(AccountError);
-
-impl Reject for OctopusError {}
-
-#[derive(Deserialize)]
-struct AccountArgs {
-    signer: String,
-}
-
-#[derive(Deserialize)]
-struct DepositArgs {
-    signer: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-struct WithdrawArgs {
-    signer: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-struct SendArgs {
-    signer: String,
-    recipient: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-struct OrderArgs {
-    signer: String,
-    side: Side,
-    amount: u64,
-    price: u64,
-}
+use warp::Filter;
 
 #[tokio::main]
 async fn main() {
@@ -57,54 +17,56 @@ async fn main() {
     // GET /hello
     let hello = warp::get()
         .and(warp::path!("hello"))
-        .map(|| format!("Hello there!!!!!"));
+        .and_then(handlers::hello);
 
     // GET /accounts
     let accounts = warp::get()
         .and(warp::path!("accounts"))
-        .map(|| format!("List of accounts"));
+        .and_then(handlers::accounts);
 
     // GET /orderbook
     let orderbook = warp::get()
         .and(warp::path!("orderbook"))
-        .map(|| format!("List of orders"));
+        .and_then(handlers::orderbook);
 
     // GET /account?signer=
     let account = warp::get()
         .and(warp::path!("account"))
-        .and(warp::query::<AccountArgs>())
-        .map(|args: AccountArgs| format!("Balance of specific account for {}", args.signer));
+        .and(warp::body::json())
+        .and_then(handlers::account);
 
     // POST /account/deposit
     let deposit = warp::post()
         .and(warp::path!("account" / "deposit"))
-        .and(warp::query::<DepositArgs>())
-        .map(|args: DepositArgs| format!("Depositing {} to account {}", args.amount, args.signer));
+        .and(warp::body::json())
+        .and_then(handlers::deposit);
 
     // POST /account/withdraw
     let withdraw = warp::post()
         .and(warp::path!("account" / "withdraw"))
-        .and(warp::query::<WithdrawArgs>())
-        .map(|args: WithdrawArgs| {
-            format!("Withdrawing {} from account {}", args.amount, args.signer)
-        });
+        .and(warp::body::json())
+        .and_then(handlers::withdraw);
 
     // POST /account/send
     let send = warp::post()
         .and(warp::path!("account" / "send"))
-        .and(warp::query::<SendArgs>())
-        .map(|args: SendArgs| {
-            format!(
-                "Sending {} from account {} to account {}",
-                args.amount, args.signer, args.recipient
-            )
-        });
+        .and(warp::body::json())
+        .and_then(handlers::send);
 
     // POST /order
     let order = warp::post()
         .and(warp::path!("order"))
-        .and(warp::query::<OrderArgs>())
-        .map(|_args: OrderArgs| "Submitting order");
+        .and(warp::body::json())
+        .and_then(handlers::order);
 
-    warp::serve(hello).run(([127, 0, 0, 1], 8080)).await;
+    let routes = hello
+        .or(accounts)
+        .or(orderbook)
+        .or(account)
+        .or(deposit)
+        .or(withdraw)
+        .or(send)
+        .or(order);
+
+    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }
