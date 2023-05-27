@@ -7,10 +7,15 @@ extern crate pretty_env_logger;
 extern crate log;
 
 use crate::core::Side;
-use octopus_common::{errors, tx};
+use octopus_common::{errors::AccountError, tx};
 
 use serde::Deserialize;
-use warp::Filter;
+use warp::{reject::Reject, Filter};
+
+#[derive(Debug)]
+struct OctopusError(AccountError);
+
+impl Reject for OctopusError {}
 
 #[derive(Deserialize)]
 struct AccountArgs {
