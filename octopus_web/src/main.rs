@@ -6,12 +6,43 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
-use std::collections::HashMap;
-
-use crate::core::{Order, Side};
+use crate::core::Side;
 use octopus_common::{errors, tx};
-use trading_platform::TradingPlatform;
+
+use serde::Deserialize;
 use warp::Filter;
+
+#[derive(Deserialize)]
+struct AccountArgs {
+    signer: String,
+}
+
+#[derive(Deserialize)]
+struct DepositArgs {
+    signer: String,
+    amount: u64,
+}
+
+#[derive(Deserialize)]
+struct WithdrawArgs {
+    signer: String,
+    amount: u64,
+}
+
+#[derive(Deserialize)]
+struct SendArgs {
+    signer: String,
+    recipient: String,
+    amount: u64,
+}
+
+#[derive(Deserialize)]
+struct OrderArgs {
+    signer: String,
+    side: Side,
+    amount: u64,
+    price: u64,
+}
 
 #[tokio::main]
 async fn main() {
@@ -36,27 +67,39 @@ async fn main() {
     // GET /account?signer=
     let account = warp::get()
         .and(warp::path!("account"))
-        .map(|| format!("Balance of specific order"));
+        .and(warp::query::<AccountArgs>())
+        .map(|args: AccountArgs| format!("Balance of specific account for {}", args.signer));
 
     // POST /account/deposit
     let deposit = warp::post()
         .and(warp::path!("account" / "deposit"))
-        .map(|| format!("Depsoiting to account"));
+        .and(warp::query::<DepositArgs>())
+        .map(|args: DepositArgs| format!("Depositing {} to account {}", args.amount, args.signer));
 
     // POST /account/withdraw
     let withdraw = warp::post()
         .and(warp::path!("account" / "withdraw"))
-        .map(|| format!("Withdrawing from account"));
+        .and(warp::query::<WithdrawArgs>())
+        .map(|args: WithdrawArgs| {
+            format!("Withdrawing {} from account {}", args.amount, args.signer)
+        });
 
     // POST /account/send
     let send = warp::post()
         .and(warp::path!("account" / "send"))
-        .map(|| format!("Sending from account to other account"));
+        .and(warp::query::<SendArgs>())
+        .map(|args: SendArgs| {
+            format!(
+                "Sending {} from account {} to account {}",
+                args.amount, args.signer, args.recipient
+            )
+        });
 
     // POST /order
     let order = warp::post()
         .and(warp::path!("order"))
-        .map(|| "Submitting order");
+        .and(warp::query::<OrderArgs>())
+        .map(|_args: OrderArgs| "Submitting order");
 
     warp::serve(hello).run(([127, 0, 0, 1], 8080)).await;
 }
