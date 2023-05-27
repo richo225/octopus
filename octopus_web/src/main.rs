@@ -40,7 +40,7 @@ async fn main() {
     // GET /account?signer=
     let account = warp::get()
         .and(warp::path!("account"))
-        .and(warp::body::json())
+        .and(warp::query::query())
         .and(trading_platform_state.clone())
         .and_then(account);
 
