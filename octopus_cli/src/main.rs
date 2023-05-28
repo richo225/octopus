@@ -126,7 +126,7 @@ fn withdraw(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
     Ok(response)
 }
 
-fn send(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
+fn send(client: &reqwest::blocking::Client) -> Result<(Tx, Tx), Box<dyn Error>> {
     let signer = read_from_stdin("What is the sender account name?");
     let recipient = read_from_stdin("What is the recipient account name?");
     let amount = read_from_stdin("What is the amount?")
@@ -141,11 +141,11 @@ fn send(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
         recipient,
     };
 
-    let response: Tx = client
+    let response: (Tx, Tx) = client
         .post("http://localhost:8080/account/send")
         .json(&body)
         .send()?
-        .json::<Tx>()?;
+        .json::<(Tx, Tx)>()?;
 
     Ok(response)
 }
