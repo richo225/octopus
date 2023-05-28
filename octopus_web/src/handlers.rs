@@ -27,6 +27,15 @@ pub async fn orderbook(
     Ok(warp::reply::json(&p.orderbook()))
 }
 
+// GET /transactions
+pub async fn transactions(
+    platform: Arc<Mutex<TradingPlatform>>,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let p = platform.lock().await;
+
+    Ok(warp::reply::json(&p.transactions))
+}
+
 // GET /account?signer=
 pub async fn account(
     args: AccountArgs,

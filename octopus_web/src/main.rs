@@ -31,6 +31,12 @@ async fn main() {
         .and(trading_platform_state.clone())
         .and_then(orderbook);
 
+    // GET /transactions
+    let transactions = warp::get()
+        .and(warp::path!("transactions"))
+        .and(trading_platform_state.clone())
+        .and_then(transactions);
+
     // GET /account?signer=
     let account = warp::get()
         .and(warp::path!("account"))
@@ -68,6 +74,7 @@ async fn main() {
 
     let routes = hello
         .or(orderbook)
+        .or(transactions)
         .or(account)
         .or(deposit)
         .or(withdraw)
