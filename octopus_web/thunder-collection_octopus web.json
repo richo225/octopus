@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "octopus web",
-    "dateExported": "2023-05-27T22:40:31.242Z",
+    "dateExported": "2023-05-28T20:34:19.429Z",
     "version": "1.1",
     "folders": [],
     "requests": [
@@ -141,6 +141,20 @@
                 "raw": "{\n  \"signer\": \"RICH\",\n  \"side\": \"Sell\",\n  \"amount\": 2,\n  \"price\": 10\n}",
                 "form": []
             },
+            "tests": []
+        },
+        {
+            "_id": "5e597af1-fd5d-4f56-83da-15d5e78f8f8e",
+            "colId": "0ebfa3e0-eeaa-4055-a0a7-1ecd4d636acc",
+            "containerId": "",
+            "name": "Fetch transactions",
+            "url": "localhost:8080/transactions",
+            "method": "GET",
+            "sortNum": 40000,
+            "created": "2023-05-28T20:32:49.905Z",
+            "modified": "2023-05-28T20:32:49.905Z",
+            "headers": [],
+            "params": [],
             "tests": []
         }
     ]
