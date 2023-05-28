@@ -44,7 +44,7 @@ impl Order {
 }
 
 /// An unfilled order that is kept in the system for later filling.
-#[derive(Clone, PartialEq, Debug, Eq, Ord, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Eq, Deserialize, Serialize)]
 pub struct PartialOrder {
     /// Price per unit
     pub price: u64,
@@ -64,6 +64,12 @@ impl PartialOrd for PartialOrder {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // this reverses the comparison to create a min heap
         Reverse(self.ordinal).partial_cmp(&Reverse(other.ordinal))
+    }
+}
+
+impl Ord for PartialOrder {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Reverse(self.ordinal).cmp(&Reverse(other.ordinal))
     }
 }
 
