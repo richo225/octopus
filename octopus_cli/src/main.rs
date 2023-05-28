@@ -2,9 +2,16 @@ use octopus_common::{
     tx::Tx,
     types::{DepositArgs, OrderArgs, PartialOrder, Receipt, SendArgs, Side, WithdrawArgs},
 };
-use std::{error::Error, io, process};
+use reqwest::Url;
+use std::{env, error::Error, io, process};
+
+const DEFAULT_HOST: &str = "http://localhost:8080";
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let url = args.into_iter().nth(1).unwrap_or(DEFAULT_HOST.to_string());
+
+    let host = Url::parse(&url).expect("Please input a valid url");
     let client = reqwest::blocking::Client::new();
 
     loop {
@@ -19,7 +26,7 @@ fn main() {
                 -> txlog
                 -> quit",
         );
-        process_actions(&client, &input)
+        process_actions(&client, &host, &input)
     }
 }
 
@@ -34,47 +41,47 @@ fn read_from_stdin(label: &str) -> String {
     user_input.trim().to_owned()
 }
 
-fn process_actions(client: &reqwest::blocking::Client, action: &str) {
+fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str) {
     match action {
-        "deposit" | "DEPOSIT" => match deposit(client) {
+        "deposit" | "DEPOSIT" => match deposit(client, host) {
             Ok(tx) => {
                 println!("Deposit successful");
                 println!("{:?}", tx)
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "withdraw" | "WITHDRAW" => match withdraw(client) {
+        "withdraw" | "WITHDRAW" => match withdraw(client, host) {
             Ok(tx) => {
                 println!("Withdraw successful");
                 println!("{:?}", tx)
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "send" | "SEND" => match send(client) {
+        "send" | "SEND" => match send(client, host) {
             Ok(tx) => {
                 println!("Send successfull!");
                 println!("{:?}", tx)
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "submit_order | SUBMIT_ORDER" => match submit_order(client) {
+        "submit_order | SUBMIT_ORDER" => match submit_order(client, host) {
             Ok(receipt) => {
                 println!("Order submitted successfully! Your receipt is below:");
                 println!("{:?}", receipt)
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "orderbook | ORDERBOOK" => match orderbook(client) {
+        "orderbook | ORDERBOOK" => match orderbook(client, host) {
             Ok(orderbook) => orderbook.iter().for_each(|po| println!("{:?}", po)),
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "account | ACCOUNT" => match account(client) {
+        "account | ACCOUNT" => match account(client, host) {
             Ok(balance) => {
                 println!("{balance}")
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "txlog | TXLOG" => match txlog(client) {
+        "txlog | TXLOG" => match txlog(client, host) {
             Ok(txs) => txs.iter().for_each(|tx| println!("{:?}", tx)),
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
@@ -88,7 +95,7 @@ fn process_actions(client: &reqwest::blocking::Client, action: &str) {
     }
 }
 
-fn deposit(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
+fn deposit(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box<dyn Error>> {
     let signer = read_from_stdin("What is the signer account name?");
     let amount = read_from_stdin("What is the amount?")
         .parse()
@@ -99,7 +106,7 @@ fn deposit(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
     let body = DepositArgs { signer, amount };
 
     let response: Tx = client
-        .post("http://localhost:8080/account/deposit")
+        .post(host.join("/account/deposit")?)
         .json(&body)
         .send()?
         .json::<Tx>()?;
@@ -107,7 +114,7 @@ fn deposit(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
     Ok(response)
 }
 
-fn withdraw(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
+fn withdraw(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box<dyn Error>> {
     let signer = read_from_stdin("What is the signer account name?");
     let amount = read_from_stdin("What is the amount?")
         .parse()
@@ -118,7 +125,7 @@ fn withdraw(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
     let body = WithdrawArgs { signer, amount };
 
     let response: Tx = client
-        .post("http://localhost:8080/account/withdraw")
+        .post(host.join("/account/withdraw")?)
         .json(&body)
         .send()?
         .json::<Tx>()?;
@@ -126,7 +133,7 @@ fn withdraw(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
     Ok(response)
 }
 
-fn send(client: &reqwest::blocking::Client) -> Result<(Tx, Tx), Box<dyn Error>> {
+fn send(client: &reqwest::blocking::Client, host: &Url) -> Result<(Tx, Tx), Box<dyn Error>> {
     let signer = read_from_stdin("What is the sender account name?");
     let recipient = read_from_stdin("What is the recipient account name?");
     let amount = read_from_stdin("What is the amount?")
@@ -142,7 +149,7 @@ fn send(client: &reqwest::blocking::Client) -> Result<(Tx, Tx), Box<dyn Error>> 
     };
 
     let response: (Tx, Tx) = client
-        .post("http://localhost:8080/account/send")
+        .post(host.join("/account/send")?)
         .json(&body)
         .send()?
         .json::<(Tx, Tx)>()?;
@@ -150,7 +157,7 @@ fn send(client: &reqwest::blocking::Client) -> Result<(Tx, Tx), Box<dyn Error>> 
     Ok(response)
 }
 
-fn submit_order(client: &reqwest::blocking::Client) -> Result<Receipt, Box<dyn Error>> {
+fn submit_order(client: &reqwest::blocking::Client, host: &Url) -> Result<Receipt, Box<dyn Error>> {
     println!("Please provide the following order details:");
     let signer: String = read_from_stdin("What is your account name?");
 
@@ -179,7 +186,7 @@ fn submit_order(client: &reqwest::blocking::Client) -> Result<Receipt, Box<dyn E
     };
 
     let response: Receipt = client
-        .post("http://localhost:8080/order")
+        .post(host.join("/order")?)
         .json(&body)
         .send()?
         .json::<Receipt>()?;
@@ -187,24 +194,27 @@ fn submit_order(client: &reqwest::blocking::Client) -> Result<Receipt, Box<dyn E
     Ok(response)
 }
 
-fn orderbook(client: &reqwest::blocking::Client) -> Result<Vec<PartialOrder>, Box<dyn Error>> {
+fn orderbook(
+    client: &reqwest::blocking::Client,
+    host: &Url,
+) -> Result<Vec<PartialOrder>, Box<dyn Error>> {
     println!("Printing orderbook....");
 
     let response: Vec<PartialOrder> = client
-        .get("http://localhost:8080/orderbook")
+        .get(host.join("/orderbook")?)
         .send()?
         .json::<Vec<PartialOrder>>()?;
 
     Ok(response)
 }
 
-fn account(client: &reqwest::blocking::Client) -> Result<u64, Box<dyn Error>> {
+fn account(client: &reqwest::blocking::Client, host: &Url) -> Result<u64, Box<dyn Error>> {
     let signer = read_from_stdin("What is the account name?");
 
     println!("Checking account balance....");
 
     let response: u64 = client
-        .get("http://localhost:8080/account")
+        .get(host.join("/account")?)
         .query(&[("signer", &signer)])
         .send()?
         .json::<u64>()?;
@@ -212,11 +222,11 @@ fn account(client: &reqwest::blocking::Client) -> Result<u64, Box<dyn Error>> {
     Ok(response)
 }
 
-fn txlog(client: &reqwest::blocking::Client) -> Result<Vec<Tx>, Box<dyn Error>> {
+fn txlog(client: &reqwest::blocking::Client, host: &Url) -> Result<Vec<Tx>, Box<dyn Error>> {
     println!("Printing txlog....");
 
     let response: Vec<Tx> = client
-        .get("http://localhost:8080/transactions")
+        .get(host.join("/transactions")?)
         .send()?
         .json::<Vec<Tx>>()?;
 
