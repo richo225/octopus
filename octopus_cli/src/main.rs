@@ -2,7 +2,7 @@ use octopus_common::{
     tx::Tx,
     types::{DepositArgs, OrderArgs, PartialOrder, Receipt, SendArgs, Side, WithdrawArgs},
 };
-use std::{io, process};
+use std::{error::Error, io, process};
 
 fn main() {
     let client = reqwest::blocking::Client::new();
@@ -36,32 +36,13 @@ fn read_from_stdin(label: &str) -> String {
 
 fn process_actions(client: &reqwest::blocking::Client, action: &str) {
     match action {
-        "deposit" | "DEPOSIT" => {
-            let signer = read_from_stdin("What is the signer account name?");
-            let amount = read_from_stdin("What is the amount?")
-                .parse()
-                .expect("Please input a valid number");
-
-            println!("Depositing {} to {}", &amount, &signer);
-
-            let body = DepositArgs { signer, amount };
-
-            let response = client
-                .post("http://localhost:8080/account/deposit")
-                .json(&body)
-                .send();
-
-            match response {
-                Ok(res) => {
-                    println!("Deposit successfull!");
-                    match res.json::<Tx>() {
-                        Ok(tx) => println!("{:?}", tx),
-                        Err(e) => eprintln!("Something went wrong: {:?}", e),
-                    }
-                }
-                Err(e) => eprintln!("Something went wrong: {:?}", e),
+        "deposit" | "DEPOSIT" => match deposit(client) {
+            Ok(tx) => {
+                println!("Deposit successful");
+                println!("{:?}", tx)
             }
-        }
+            Err(e) => eprintln!("Something went wrong: {:?}", e),
+        },
         "withdraw" | "WITHDRAW" => {
             let signer = read_from_stdin("What is the signer account name?");
             let amount = read_from_stdin("What is the amount?")
@@ -214,4 +195,23 @@ fn process_actions(client: &reqwest::blocking::Client, action: &str) {
             eprintln!("Invalid action: {:?}", action)
         }
     }
+}
+
+fn deposit(client: &reqwest::blocking::Client) -> Result<Tx, Box<dyn Error>> {
+    let signer = read_from_stdin("What is the signer account name?");
+    let amount = read_from_stdin("What is the amount?")
+        .parse()
+        .expect("Please input a valid number");
+
+    println!("Depositing {} to {}", &amount, &signer);
+
+    let body = DepositArgs { signer, amount };
+
+    let response = client
+        .post("http://localhost:8080/account/deposit")
+        .json(&body)
+        .send()?
+        .json::<Tx>()?;
+
+    Ok(response)
 }
