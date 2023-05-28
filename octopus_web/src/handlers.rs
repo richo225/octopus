@@ -1,7 +1,9 @@
-use crate::{core::Side, trading_platform::TradingPlatform};
-use octopus_common::{errors::AccountError, types::Order};
+use crate::{
+    core::{AccountArgs, DepositArgs, Order, OrderArgs, SendArgs, WithdrawArgs},
+    trading_platform::TradingPlatform,
+};
+use octopus_common::errors::AccountError;
 
-use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use warp::reject::Reject;
@@ -10,38 +12,6 @@ use warp::reject::Reject;
 pub struct OctopusError(AccountError);
 
 impl Reject for OctopusError {}
-
-#[derive(Deserialize)]
-pub struct AccountArgs {
-    signer: String,
-}
-
-#[derive(Deserialize)]
-pub struct DepositArgs {
-    signer: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-pub struct WithdrawArgs {
-    signer: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-pub struct SendArgs {
-    signer: String,
-    recipient: String,
-    amount: u64,
-}
-
-#[derive(Deserialize)]
-pub struct OrderArgs {
-    signer: String,
-    side: Side,
-    amount: u64,
-    price: u64,
-}
 
 // GET /hello
 pub async fn hello() -> Result<impl warp::Reply, warp::Rejection> {
