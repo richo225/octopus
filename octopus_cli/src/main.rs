@@ -57,28 +57,28 @@ fn process_actions(client: &reqwest::blocking::Client, action: &str) {
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "submit_order" => match submit_order(client) {
+        "submit_order | SUBMIT_ORDER" => match submit_order(client) {
             Ok(receipt) => {
                 println!("Order submitted successfully! Your receipt is below:");
                 println!("{:?}", receipt)
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "orderbook" => match orderbook(client) {
+        "orderbook | ORDERBOOK" => match orderbook(client) {
             Ok(orderbook) => orderbook.iter().for_each(|po| println!("{:?}", po)),
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "account" => match account(client) {
+        "account | ACCOUNT" => match account(client) {
             Ok(balance) => {
                 println!("{balance}")
             }
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "txlog" => match txlog(client) {
+        "txlog | TXLOG" => match txlog(client) {
             Ok(txs) => txs.iter().for_each(|tx| println!("{:?}", tx)),
             Err(e) => eprintln!("Something went wrong: {:?}", e),
         },
-        "quit" => {
+        "quit | QUIT | q | Q" => {
             println!("Exiting program....");
             process::exit(1);
         }
