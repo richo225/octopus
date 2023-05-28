@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 octopus_common = { version = "*", path = "../octopus_common" }
+reqwest = { version = "0.11.18", features = ["blocking", "json"] }
+serde = { version = "1.0.163", features = ["derive"] }
