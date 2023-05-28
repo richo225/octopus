@@ -25,12 +25,6 @@ async fn main() {
     // GET /hello
     let hello = warp::get().and(warp::path!("hello")).and_then(hello);
 
-    // GET /accounts
-    let accounts = warp::get()
-        .and(warp::path!("accounts"))
-        .and(trading_platform_state.clone())
-        .and_then(accounts);
-
     // GET /orderbook
     let orderbook = warp::get()
         .and(warp::path!("orderbook"))
@@ -73,7 +67,6 @@ async fn main() {
         .and_then(order);
 
     let routes = hello
-        .or(accounts)
         .or(orderbook)
         .or(account)
         .or(deposit)

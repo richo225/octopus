@@ -1,5 +1,5 @@
 use crate::{core::Side, trading_platform::TradingPlatform};
-use octopus_common::errors::AccountError;
+use octopus_common::{errors::AccountError, types::Order};
 
 use serde::Deserialize;
 use std::sync::Arc;
@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use warp::reject::Reject;
 
 #[derive(Debug)]
-struct OctopusError(AccountError);
+pub struct OctopusError(AccountError);
 
 impl Reject for OctopusError {}
 
@@ -45,21 +45,16 @@ pub struct OrderArgs {
 
 // GET /hello
 pub async fn hello() -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!("Hello there!!!!!"))
-}
-
-// GET /accounts
-pub async fn accounts(
-    platform: Arc<Mutex<TradingPlatform>>,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!("List of accounts"))
+    Ok("Hello there!!!!!".to_string())
 }
 
 // GET /orderbook
 pub async fn orderbook(
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!("List of orders"))
+    let mut p = platform.lock().await;
+
+    Ok(warp::reply::json(&p.orderbook()))
 }
 
 // GET /account?signer=
@@ -67,7 +62,12 @@ pub async fn account(
     args: AccountArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!("Balance of specific account for {}", args.signer))
+    let mut p = platform.lock().await;
+
+    match p.balance_of(&args.signer) {
+        Ok(balance) => Ok(warp::reply::json(&balance)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
 }
 
 // POST /account/deposit
@@ -75,10 +75,12 @@ pub async fn deposit(
     args: DepositArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!(
-        "Depositing {} to account {}",
-        args.amount, args.signer
-    ))
+    let mut p = platform.lock().await;
+
+    match p.deposit(&args.signer, args.amount) {
+        Ok(tx) => Ok(warp::reply::json(&tx)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
 }
 
 // POST /account/withdraw
@@ -86,10 +88,12 @@ pub async fn withdraw(
     args: WithdrawArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!(
-        "Withdrawing {} from account {}",
-        args.amount, args.signer
-    ))
+    let mut p = platform.lock().await;
+
+    match p.withdraw(&args.signer, args.amount) {
+        Ok(tx) => Ok(warp::reply::json(&tx)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
 }
 
 // POST /account/send
@@ -97,16 +101,29 @@ pub async fn send(
     args: SendArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!(
-        "Sending {} from account {} to account {}",
-        args.amount, args.signer, args.recipient
-    ))
+    let mut p = platform.lock().await;
+
+    match p.send(&args.signer, &args.recipient, args.amount) {
+        Ok(tx) => Ok(warp::reply::json(&tx)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
 }
 
 // POST /order
 pub async fn order(
-    _args: OrderArgs,
+    args: OrderArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(format!("Submitting order"))
+    let mut p = platform.lock().await;
+    let order = Order {
+        signer: args.signer,
+        price: args.price,
+        amount: args.amount,
+        side: args.side,
+    };
+
+    match p.order(order) {
+        Ok(receipt) => Ok(warp::reply::json(&receipt)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
 }
