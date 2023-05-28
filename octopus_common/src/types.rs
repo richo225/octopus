@@ -93,31 +93,31 @@ impl PartialOrder {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct AccountArgs {
     pub signer: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct DepositArgs {
     pub signer: String,
     pub amount: u64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct WithdrawArgs {
     pub signer: String,
     pub amount: u64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct SendArgs {
     pub signer: String,
     pub recipient: String,
     pub amount: u64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct OrderArgs {
     pub signer: String,
     pub side: Side,
