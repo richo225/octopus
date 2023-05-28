@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::{Ordering, Reverse};
 
 /// Simplified side of a position as well as order.
-#[derive(Clone, PartialOrd, PartialEq, Eq, Debug, Ord)]
+#[derive(Clone, PartialOrd, PartialEq, Eq, Debug, Ord, Deserialize, Serialize)]
 pub enum Side {
     /// Want to buy
     Buy,
@@ -43,7 +44,7 @@ impl Order {
 }
 
 /// An unfilled order that is kept in the system for later filling.
-#[derive(Clone, PartialEq, Debug, Eq, Ord)]
+#[derive(Clone, PartialEq, Debug, Eq, Deserialize, Serialize)]
 pub struct PartialOrder {
     /// Price per unit
     pub price: u64,
@@ -66,8 +67,14 @@ impl PartialOrd for PartialOrder {
     }
 }
 
+impl Ord for PartialOrder {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Reverse(self.ordinal).cmp(&Reverse(other.ordinal))
+    }
+}
+
 /// A receipt issued to the caller for accepting an [`Order`]
-#[derive(Clone, PartialOrd, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialOrd, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct Receipt {
     /// Sequence number
     pub ordinal: u64,
