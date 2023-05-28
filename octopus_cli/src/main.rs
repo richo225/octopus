@@ -1,8 +1,10 @@
-use octopus_common::{tx::Tx, types::DepositArgs};
+use octopus_common::{
+    tx::Tx,
+    types::{DepositArgs, OrderArgs, PartialOrder, Receipt, SendArgs, Side, WithdrawArgs},
+};
 use std::{io, process};
 
 fn main() {
-    // initialise http client here
     let client = reqwest::blocking::Client::new();
 
     loop {
@@ -13,6 +15,8 @@ fn main() {
                 -> send
                 -> submit_order
                 -> orderbook
+                -> account
+                -> txlog
                 -> quit",
         );
         process_actions(&client, &input)
@@ -58,96 +62,154 @@ fn process_actions(client: &reqwest::blocking::Client, action: &str) {
                 Err(e) => eprintln!("Something went wrong: {:?}", e),
             }
         }
-        // "withdraw" | "WITHDRAW" => {
-        //     let signer = read_from_stdin("What is the signer account name?");
-        //     let amount = read_from_stdin("What is the amount?")
-        //         .parse()
-        //         .expect("Please input a valid number");
+        "withdraw" | "WITHDRAW" => {
+            let signer = read_from_stdin("What is the signer account name?");
+            let amount = read_from_stdin("What is the amount?")
+                .parse()
+                .expect("Please input a valid number");
 
-        //     match trading_platform.withdraw(&signer, amount) {
-        //         Ok(tx) => {
-        //             println!("Withdrawing {} from {}: {:?}", amount, signer, tx)
-        //         }
-        //         Err(e) => eprintln!("Something went wrong: {:?}", e),
-        //     };
-        // }
-        // "send" | "SEND" => {
-        //     let sender = read_from_stdin("What is the sender account name?");
-        //     let recipient = read_from_stdin("What is the recipient account name?");
-        //     let amount = read_from_stdin("What is the amount?")
-        //         .parse()
-        //         .expect("Please input a valid number");
+            println!("Withdrawing {} from {}", amount, signer);
 
-        //     match trading_platform.send(&sender, recipient.trim(), amount) {
-        //         Ok(tx) => {
-        //             println!(
-        //                 "Sending {} from {} to {}: {:?}",
-        //                 amount, sender, recipient, tx
-        //             )
-        //         }
-        //         Err(e) => eprintln!("Something went wrong: {:?}", e),
-        //     };
-        // }
-        // "submit_order" => {
-        //     println!("Please provide the following order details:");
-        //     let signer: String = read_from_stdin("What is your account name?");
+            let body = WithdrawArgs { signer, amount };
 
-        //     let side: Side =
-        //         match read_from_stdin("What is the order type? Buy/Sell? (default is sell)")
-        //             .as_str()
-        //         {
-        //             "buy" | "BUY" => Side::Buy,
-        //             "sell" | "SELL" => Side::Sell,
-        //             &_ => Side::Sell,
-        //         };
+            let response = client
+                .post("http://localhost:8080/account/withdraw")
+                .json(&body)
+                .send();
 
-        //     let price: u64 = read_from_stdin("What is the price?")
-        //         .parse()
-        //         .expect("Please input a valid number");
+            match response {
+                Ok(res) => {
+                    println!("Withdraw successfull!");
+                    match res.json::<Tx>() {
+                        Ok(tx) => println!("{:?}", tx),
+                        Err(e) => eprintln!("Something went wrong: {:?}", e),
+                    }
+                }
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "send" | "SEND" => {
+            let signer = read_from_stdin("What is the sender account name?");
+            let recipient = read_from_stdin("What is the recipient account name?");
+            let amount = read_from_stdin("What is the amount?")
+                .parse()
+                .expect("Please input a valid number");
 
-        //     let amount: u64 = read_from_stdin("What is the amount?")
-        //         .parse()
-        //         .expect("Please input a valid number");
+            println!("Sending {} from {} to {}", amount, signer, recipient);
 
-        //     match trading_platform.order(Order {
-        //         price,
-        //         amount,
-        //         side,
-        //         signer,
-        //     }) {
-        //         Ok(receipt) => {
-        //             println!("Order submitted successfully! Your receipt is below:");
-        //             println!("{:?}", receipt)
-        //         }
-        //         Err(e) => eprintln!("Something went wrong: {:?}", e),
-        //     }
-        // }
-        // "orderbook" => {
-        //     println!("Printing orderbook....");
-        //     trading_platform
-        //         .orderbook()
-        //         .iter()
-        //         .for_each(|po| println!("{:?}", po))
-        // }
-        // "accounts" => {
-        //     println!("Printing accounts....");
-        //     trading_platform
-        //         .accounts
-        //         .accounts
-        //         .iter()
-        //         .for_each(|acc| println!("{:?}", acc))
-        // }
-        // "txlog" => {
-        //     println!("Printing txlog....");
-        //     trading_platform
-        //         .transactions
-        //         .iter()
-        //         .for_each(|tx| println!("{:?}", tx))
-        // }
-        // "quit" => {
-        //     println!("Exiting program....");
-        //     process::exit(1);
-        // }
+            let body = SendArgs {
+                signer,
+                amount,
+                recipient,
+            };
+
+            let response = client
+                .post("http://localhost:8080/account/send")
+                .json(&body)
+                .send();
+
+            match response {
+                Ok(res) => {
+                    println!("Send successfull!");
+                    match res.json::<Tx>() {
+                        Ok(tx) => println!("{:?}", tx),
+                        Err(e) => eprintln!("Something went wrong: {:?}", e),
+                    }
+                }
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "submit_order" => {
+            println!("Please provide the following order details:");
+            let signer: String = read_from_stdin("What is your account name?");
+
+            let side: Side =
+                match read_from_stdin("What is the order type? Buy/Sell? (default is Sell)")
+                    .as_str()
+                {
+                    "buy" | "BUY" => Side::Buy,
+                    "sell" | "SELL" => Side::Sell,
+                    &_ => Side::Sell,
+                };
+
+            let price: u64 = read_from_stdin("What is the price?")
+                .parse()
+                .expect("Please input a valid number");
+
+            let amount: u64 = read_from_stdin("What is the amount?")
+                .parse()
+                .expect("Please input a valid number");
+
+            println!("Submitting order...");
+
+            let body = OrderArgs {
+                price,
+                amount,
+                side,
+                signer,
+            };
+
+            let response = client
+                .post("http://localhost:8080/order")
+                .json(&body)
+                .send();
+
+            match response {
+                Ok(res) => {
+                    println!("Order submitted successfully! Your receipt is below:");
+                    match res.json::<Receipt>() {
+                        Ok(receipt) => println!("{:?}", receipt),
+                        Err(e) => eprintln!("Something went wrong: {:?}", e),
+                    }
+                }
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "orderbook" => {
+            println!("Printing orderbook....");
+            let response = client.get("http://localhost:8080/orderbook").send();
+
+            match response {
+                Ok(res) => match res.json::<Vec<PartialOrder>>() {
+                    Ok(orderbook) => orderbook.iter().for_each(|po| println!("{:?}", po)),
+                    Err(e) => eprintln!("Something went wrong: {:?}", e),
+                },
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "account" => {
+            let signer = read_from_stdin("What is the account name?");
+
+            println!("Checking account balance....");
+            let response = client
+                .get("http://localhost:8080/account")
+                .query(&[("signer", &signer)])
+                .send();
+
+            match response {
+                Ok(res) => match res.json::<u64>() {
+                    Ok(balance) => println!("{balance}"),
+                    Err(e) => eprintln!("Something went wrong: {:?}", e),
+                },
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "txlog" => {
+            println!("Printing txlog....");
+            let response = client.get("http://localhost:8080/transactions").send();
+
+            match response {
+                Ok(res) => match res.json::<Vec<Tx>>() {
+                    Ok(transactions) => transactions.iter().for_each(|tx| println!("{:?}", tx)),
+                    Err(e) => eprintln!("Something went wrong: {:?}", e),
+                },
+                Err(e) => eprintln!("Something went wrong: {:?}", e),
+            }
+        }
+        "quit" => {
+            println!("Exiting program....");
+            process::exit(1);
+        }
         &_ => {
             eprintln!("Invalid action: {:?}", action)
         }
