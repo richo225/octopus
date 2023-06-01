@@ -9,4 +9,5 @@ EXPOSE 8080
 
 # Run the application with server logging!
 ENV RUST_LOG="trace"
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 CMD ["./target/release/octopus_web"]
