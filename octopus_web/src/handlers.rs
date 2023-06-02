@@ -118,16 +118,7 @@ pub async fn match_order(args: MatchArgs) -> Result<impl warp::Reply, warp::Reje
         Ok(receipt) => {
             let body = MatchResponse {
                 receipt,
-                asks: engine
-                    .asks
-                    .into_values()
-                    .flat_map(|heap| heap.into_vec())
-                    .collect(),
-                bids: engine
-                    .bids
-                    .into_values()
-                    .flat_map(|heap| heap.into_vec())
-                    .collect(),
+                orderbook: engine.vectorised_orderbook(),
             };
 
             Ok(warp::reply::json(&body))

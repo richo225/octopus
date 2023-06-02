@@ -135,6 +135,5 @@ pub struct MatchArgs {
 #[derive(Serialize)]
 pub struct MatchResponse {
     pub receipt: Receipt,
-    pub asks: Vec<PartialOrder>,
-    pub bids: Vec<PartialOrder>,
+    pub orderbook: Vec<PartialOrder>,
 }
