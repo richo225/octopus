@@ -4,6 +4,10 @@ use octopus_common::{
 };
 use reqwest::Url;
 use std::{env, error::Error, io, process};
+use yansi::{
+    Color::{Blue, Cyan, Green, Red},
+    Style,
+};
 
 const DEFAULT_HOST: &str = "https://octopus-web.up.railway.app";
 
@@ -13,6 +17,38 @@ fn main() {
 
     let host = Url::parse(&url).expect("Please input a valid url");
     let client = reqwest::blocking::Client::new();
+
+    let octopus_text = r#"
+           _                        
+          | |                       
+ ___   ___| |_ ___  _ __  _   _ ___ 
+/ _ \ / __| __/ _ \| '_ \| | | / __|
+| (_) | (__| || (_) | |_) | |_| \__ \
+\___/ \___|\__\___/| .__/ \__,_|___/
+             | |              
+             |_|              
+    "#;
+
+    let octopus_image = r#"
+               .---.         ,,
+    ,,        /     \       ;,,'        
+   ;, ;      (  o  o )      ; ;
+     ;,';,,,  \  \/ /      ,; ;
+  ,,,  ;,,,,;;,`   '-,;'''',,,'
+ ;,, ;,, ,,,,   ,;  ,,,'';;,,;''';
+    ;,,,;    ~~'  '';,,''',,;''''  
+                       '''
+    "#;
+
+    let left_pad = octopus_image.lines().map(|l| l.len()).max().unwrap_or(0);
+    for (octopus_image, octopus_text) in octopus_image.lines().zip(octopus_text.lines()) {
+        println!(
+            "{:width$} {}",
+            octopus_image,
+            octopus_text,
+            width = left_pad
+        );
+    }
 
     loop {
         let input = read_from_stdin(
@@ -31,7 +67,7 @@ fn main() {
 }
 
 fn read_from_stdin(label: &str) -> String {
-    println!("{label}");
+    println!("{}", Blue.paint(label));
 
     let mut user_input = String::new();
     io::stdin()
@@ -42,55 +78,93 @@ fn read_from_stdin(label: &str) -> String {
 }
 
 fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str) {
+    let success = Style::new(Green).italic().underline();
+    let alert = Style::new(Red).italic();
+
     match action {
         "deposit" | "DEPOSIT" => match deposit(client, host) {
             Ok(tx) => {
-                println!("Deposit successful");
+                println!("{}", success.paint("Deposit successful"));
                 println!("{:?}", tx)
             }
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
         "withdraw" | "WITHDRAW" => match withdraw(client, host) {
             Ok(tx) => {
-                println!("Withdraw successful");
+                println!("{}", success.paint("Withdraw successful"));
                 println!("{:?}", tx)
             }
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
         "send" | "SEND" => match send(client, host) {
             Ok(tx) => {
-                println!("Send successfull!");
+                println!("{}", success.paint("Send successful"));
                 println!("{:?}", tx)
             }
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
-        "submit_order | SUBMIT_ORDER" => match submit_order(client, host) {
+        "submit_order" | "SUBMIT_ORDER" => match submit_order(client, host) {
             Ok(receipt) => {
-                println!("Order submitted successfully! Your receipt is below:");
+                println!(
+                    "{}",
+                    success.paint("Order submitted successfully! Your receipt is below:")
+                );
                 println!("{:?}", receipt)
             }
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
-        "orderbook | ORDERBOOK" => match orderbook(client, host) {
+        "orderbook" | "ORDERBOOK" => match orderbook(client, host) {
             Ok(orderbook) => orderbook.iter().for_each(|po| println!("{:?}", po)),
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
-        "account | ACCOUNT" => match account(client, host) {
+        "account" | "ACCOUNT" => match account(client, host) {
             Ok(balance) => {
-                println!("{balance}")
+                println!("{}", Cyan.paint(balance))
             }
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
-        "txlog | TXLOG" => match txlog(client, host) {
+        "txlog" | "TXLOG" => match txlog(client, host) {
             Ok(txs) => txs.iter().for_each(|tx| println!("{:?}", tx)),
-            Err(e) => eprintln!("Something went wrong: {:?}", e),
+            Err(e) => eprintln!(
+                "{}: {:?}",
+                alert.paint("Something went wrong"),
+                alert.paint(e)
+            ),
         },
-        "quit | QUIT | q | Q" => {
-            println!("Exiting program....");
+        "quit" | "QUIT" | "q" | "Q" => {
+            println!("{}", Cyan.paint("Exiting program....."));
             process::exit(1);
         }
         &_ => {
-            eprintln!("Invalid action: {:?}", action)
+            eprintln!(
+                "{}: {:?}",
+                alert.paint("Invalid action"),
+                alert.paint(action)
+            )
         }
     }
 }
@@ -101,7 +175,11 @@ fn deposit(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box<dyn
         .parse()
         .expect("Please input a valid number");
 
-    println!("Depositing {} to {}", &amount, &signer);
+    println!(
+        "Depositing {} to {}",
+        Cyan.paint(&amount),
+        Cyan.paint(&signer)
+    );
 
     let body = DepositArgs { signer, amount };
 
@@ -120,7 +198,11 @@ fn withdraw(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box<dy
         .parse()
         .expect("Please input a valid number");
 
-    println!("Withdrawing {} from {}", amount, signer);
+    println!(
+        "Withdrawing {} from {}",
+        Cyan.paint(&amount),
+        Cyan.paint(&signer)
+    );
 
     let body = WithdrawArgs { signer, amount };
 
@@ -140,7 +222,12 @@ fn send(client: &reqwest::blocking::Client, host: &Url) -> Result<(Tx, Tx), Box<
         .parse()
         .expect("Please input a valid number");
 
-    println!("Sending {} from {} to {}", amount, signer, recipient);
+    println!(
+        "Sending {} from {} to {}",
+        Cyan.paint(&amount),
+        Cyan.paint(&signer),
+        Cyan.paint(&recipient)
+    );
 
     let body = SendArgs {
         signer,
@@ -158,7 +245,10 @@ fn send(client: &reqwest::blocking::Client, host: &Url) -> Result<(Tx, Tx), Box<
 }
 
 fn submit_order(client: &reqwest::blocking::Client, host: &Url) -> Result<Receipt, Box<dyn Error>> {
-    println!("Please provide the following order details:");
+    println!(
+        "{}",
+        Blue.paint("Please provide the following order details:")
+    );
     let signer: String = read_from_stdin("What is your account name?");
 
     let side: Side =
@@ -176,7 +266,7 @@ fn submit_order(client: &reqwest::blocking::Client, host: &Url) -> Result<Receip
         .parse()
         .expect("Please input a valid number");
 
-    println!("Submitting order...");
+    println!("{}", Cyan.paint("Submitting order....."));
 
     let body = OrderArgs {
         price,
@@ -198,7 +288,7 @@ fn orderbook(
     client: &reqwest::blocking::Client,
     host: &Url,
 ) -> Result<Vec<PartialOrder>, Box<dyn Error>> {
-    println!("Printing orderbook....");
+    println!("{}", Cyan.paint("Printing orderbook....."));
 
     let response: Vec<PartialOrder> = client
         .get(host.join("/orderbook")?)
@@ -211,7 +301,7 @@ fn orderbook(
 fn account(client: &reqwest::blocking::Client, host: &Url) -> Result<u64, Box<dyn Error>> {
     let signer = read_from_stdin("What is the account name?");
 
-    println!("Checking account balance....");
+    println!("{}", Cyan.paint("Checking account balance....."));
 
     let response: u64 = client
         .get(host.join("/account")?)
@@ -223,7 +313,7 @@ fn account(client: &reqwest::blocking::Client, host: &Url) -> Result<u64, Box<dy
 }
 
 fn txlog(client: &reqwest::blocking::Client, host: &Url) -> Result<Vec<Tx>, Box<dyn Error>> {
-    println!("Printing txlog....");
+    println!("{}", Cyan.paint("Printing txlog....."));
 
     let response: Vec<Tx> = client
         .get(host.join("/transactions")?)
