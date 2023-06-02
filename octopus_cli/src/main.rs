@@ -5,7 +5,7 @@ use octopus_common::{
 use reqwest::Url;
 use std::{env, error::Error, io, process};
 use yansi::{
-    Color::{Blue, Cyan, Green, Red},
+    Color::{Blue, Cyan, Green, Red, RGB},
     Style,
 };
 
@@ -18,37 +18,7 @@ fn main() {
     let host = Url::parse(&url).expect("Please input a valid url");
     let client = reqwest::blocking::Client::new();
 
-    let octopus_text = r#"
-           _                        
-          | |                       
- ___   ___| |_ ___  _ __  _   _ ___ 
-/ _ \ / __| __/ _ \| '_ \| | | / __|
-| (_) | (__| || (_) | |_) | |_| \__ \
-\___/ \___|\__\___/| .__/ \__,_|___/
-             | |              
-             |_|              
-    "#;
-
-    let octopus_image = r#"
-               .---.         ,,
-    ,,        /     \       ;,,'        
-   ;, ;      (  o  o )      ; ;
-     ;,';,,,  \  \/ /      ,; ;
-  ,,,  ;,,,,;;,`   '-,;'''',,,'
- ;,, ;,, ,,,,   ,;  ,,,'';;,,;''';
-    ;,,,;    ~~'  '';,,''',,;''''  
-                       '''
-    "#;
-
-    let left_pad = octopus_image.lines().map(|l| l.len()).max().unwrap_or(0);
-    for (octopus_image, octopus_text) in octopus_image.lines().zip(octopus_text.lines()) {
-        println!(
-            "{:width$} {}",
-            octopus_image,
-            octopus_text,
-            width = left_pad
-        );
-    }
+    print_welcome();
 
     loop {
         let input = read_from_stdin(
@@ -321,4 +291,58 @@ fn txlog(client: &reqwest::blocking::Client, host: &Url) -> Result<Vec<Tx>, Box<
         .json::<Vec<Tx>>()?;
 
     Ok(response)
+}
+
+fn print_welcome() {
+    let octopus_text = r#"
+
+
+
+
+
+               _                        
+              | |                       
+     ___   ___| |_ ___  _ __  _   _ ___ 
+    / _ \ / __| __/ _ \| '_ \| | | / __|
+   | (_) | (__| || (_) | |_) | |_| \__ \
+    \___/ \___|\__\___/| .__/ \__,_|___/
+                       | |              
+                       |_|   
+
+
+
+
+
+    "#;
+
+    let octopus_image = r#"
+                        ___
+                     .-'   `'.
+                    /         \
+                    |         ;
+                    |         |           ___.--,
+           _.._     |0) ~ (0) |    _.---'`__.-( (_.
+    __.--'`_.. '.__.\    '--. \_.-' ,.--'`     `""`
+   ( ,.--'`   ',__ /./;   ;, '.__.'`    __
+   _`) )  .---.__.' / |   |\   \__..--""  """--.,_
+  `---' .'.''-._.-'`_./  /\ '.  \ _.-~~~````~~~-._`-.__.'
+        | |  .' _.-' |  |  \  \  '.               `~---`
+         \ \/ .'     \  \   '. '-._)
+          \/ /        \  \    `=.__`~-.
+          / /\         `) )    / / `"".`\
+    , _.-'.'\ \        / /    ( (     / /
+     `--~`   ) )    .-'.'      '.'.  | (
+            (/`    ( (`          ) )  '-;
+             `      '-;         (-'
+    "#;
+
+    let left_pad = octopus_image.lines().map(|l| l.len()).max().unwrap_or(0);
+    for (octopus_image, octopus_text) in octopus_image.lines().zip(octopus_text.lines()) {
+        println!(
+            "{:width$} {}",
+            RGB(255, 117, 24).paint(octopus_image),
+            RGB(255, 117, 24).paint(octopus_text),
+            width = left_pad
+        );
+    }
 }
