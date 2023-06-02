@@ -20,7 +20,7 @@ impl Reject for OctopusError {}
 pub async fn status() -> Result<impl warp::Reply, warp::Rejection> {
     Ok(warp::reply::with_status(
         "Up".to_string(),
-        warp::http::StatusCode::NO_CONTENT,
+        warp::http::StatusCode::OK,
     ))
 }
 
