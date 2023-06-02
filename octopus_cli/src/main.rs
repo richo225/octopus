@@ -186,7 +186,7 @@ fn submit_order(client: &reqwest::blocking::Client, host: &Url) -> Result<Receip
     };
 
     let response: Receipt = client
-        .post(host.join("/order")?)
+        .post(host.join("/submit_order")?)
         .json(&body)
         .send()?
         .json::<Receipt>()?;

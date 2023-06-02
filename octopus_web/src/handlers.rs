@@ -1,8 +1,11 @@
 use crate::{
-    core::{AccountArgs, DepositArgs, Order, OrderArgs, SendArgs, WithdrawArgs},
+    core::{
+        AccountArgs, DepositArgs, MatchArgs, MatchingEngine, Order, OrderArgs, SendArgs,
+        WithdrawArgs,
+    },
     trading_platform::TradingPlatform,
 };
-use octopus_common::errors::AccountError;
+use octopus_common::{errors::AccountError, types::MatchResponse};
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -13,9 +16,12 @@ pub struct OctopusError(AccountError);
 
 impl Reject for OctopusError {}
 
-// GET /hello
-pub async fn hello() -> Result<impl warp::Reply, warp::Rejection> {
-    Ok("Hello there!!!!!".to_string())
+// GET /
+pub async fn status() -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(warp::reply::with_status(
+        "Up".to_string(),
+        warp::http::StatusCode::NO_CONTENT,
+    ))
 }
 
 // GET /orderbook
@@ -88,8 +94,8 @@ pub async fn send(
     }
 }
 
-// POST /order
-pub async fn order(
+// POST /submit_order
+pub async fn submit_order(
     args: OrderArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -101,8 +107,25 @@ pub async fn order(
         side: args.side,
     };
 
-    match p.order(order) {
+    match p.submit_order(order) {
         Ok(receipt) => Ok(warp::reply::json(&receipt)),
+        Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    }
+}
+
+// POST /match_order
+pub async fn match_order(args: MatchArgs) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut engine = MatchingEngine::new_with_orderbook(args.asks, args.bids);
+
+    match engine.process(args.order) {
+        Ok(receipt) => {
+            let body = MatchResponse {
+                receipt,
+                orderbook: engine.vectorised_orderbook(),
+            };
+
+            Ok(warp::reply::json(&body))
+        }
         Err(e) => Err(warp::reject::custom(OctopusError(e))),
     }
 }

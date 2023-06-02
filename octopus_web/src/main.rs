@@ -22,8 +22,8 @@ async fn main() {
     let trading_platform = Arc::new(Mutex::new(TradingPlatform::new()));
     let trading_platform_state = warp::any().map(move || trading_platform.clone());
 
-    // GET /hello
-    let hello = warp::get().and(warp::path!("hello")).and_then(hello);
+    // GET /
+    let status = warp::get().and(warp::path!()).and_then(status);
 
     // GET /orderbook
     let orderbook = warp::get()
@@ -65,21 +65,28 @@ async fn main() {
         .and(trading_platform_state.clone())
         .and_then(send);
 
-    // POST /order
-    let order = warp::post()
-        .and(warp::path!("order"))
+    // POST /submit_order
+    let submit_order = warp::post()
+        .and(warp::path!("submit_order"))
         .and(warp::body::json())
         .and(trading_platform_state.clone())
-        .and_then(order);
+        .and_then(submit_order);
 
-    let routes = hello
+    // POST /match_order
+    let match_order = warp::post()
+        .and(warp::path!("match_order"))
+        .and(warp::body::json())
+        .and_then(match_order);
+
+    let routes = status
         .or(orderbook)
         .or(transactions)
         .or(account)
         .or(deposit)
         .or(withdraw)
         .or(send)
-        .or(order);
+        .or(submit_order)
+        .or(match_order);
 
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
