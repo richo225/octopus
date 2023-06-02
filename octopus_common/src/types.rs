@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::{Ordering, Reverse},
-    collections::{BTreeMap, BinaryHeap},
 };
 
 /// Simplified side of a position as well as order.

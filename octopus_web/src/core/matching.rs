@@ -30,6 +30,33 @@ impl MatchingEngine {
         }
     }
 
+    /// Creates a new [`MatchingEngine`] with asks and bids from [`Vec<Order>`]
+    pub fn new_with_orderbook(ask_orders: Vec<Order>, bid_orders: Vec<Order>) -> Self {
+        let mut bids: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
+        let mut asks: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
+
+        bid_orders.into_iter().for_each(|o| {
+            let price = o.price;
+            let po = o.into_partial_order(0, price);
+
+            bids.entry(price).or_insert(vec![].into()).push(po);
+        });
+
+        ask_orders.into_iter().for_each(|o| {
+            let price = o.price;
+            let po = o.into_partial_order(0, price);
+
+            asks.entry(price).or_insert(vec![].into()).push(po);
+        });
+
+        MatchingEngine {
+            ordinal: 0,
+            bids,
+            asks,
+            history: Vec::new(),
+        }
+    }
+
     /// Processes an [`Order`] and returns a [`Receipt`]
     /// This includes matching the order to whatever is in the current books and adding the remainder (if any) to the book for future matching.
     pub fn process(&mut self, order: Order) -> Result<Receipt, AccountError> {
