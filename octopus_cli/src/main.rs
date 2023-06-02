@@ -5,7 +5,7 @@ use octopus_common::{
 use reqwest::Url;
 use std::{env, error::Error, io, process};
 
-const DEFAULT_HOST: &str = "http://localhost:8080";
+const DEFAULT_HOST: &str = "https://octopus-web.up.railway.app";
 
 fn main() {
     let args: Vec<String> = env::args().collect();
