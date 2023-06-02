@@ -5,7 +5,7 @@ use crate::{
     },
     trading_platform::TradingPlatform,
 };
-use octopus_common::errors::AccountError;
+use octopus_common::{errors::AccountError, types::MatchResponse};
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -115,7 +115,23 @@ pub async fn match_order(args: MatchArgs) -> Result<impl warp::Reply, warp::Reje
     let mut engine = MatchingEngine::new_with_orderbook(args.asks, args.bids);
 
     match engine.process(args.order) {
-        Ok(receipt) => Ok(warp::reply::json(&receipt)),
+        Ok(receipt) => {
+            let body = MatchResponse {
+                receipt,
+                asks: engine
+                    .asks
+                    .into_values()
+                    .flat_map(|heap| heap.into_vec())
+                    .collect(),
+                bids: engine
+                    .bids
+                    .into_values()
+                    .flat_map(|heap| heap.into_vec())
+                    .collect(),
+            };
+
+            Ok(warp::reply::json(&body))
+        }
         Err(e) => Err(warp::reject::custom(OctopusError(e))),
     }
 }
