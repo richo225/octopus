@@ -16,9 +16,12 @@ pub struct OctopusError(AccountError);
 
 impl Reject for OctopusError {}
 
-// GET /hello
-pub async fn hello() -> Result<impl warp::Reply, warp::Rejection> {
-    Ok("Hello there!!!!!".to_string())
+// GET /
+pub async fn status() -> Result<impl warp::Reply, warp::Rejection> {
+    Ok(warp::reply::with_status(
+        "Up".to_string(),
+        warp::http::StatusCode::NO_CONTENT,
+    ))
 }
 
 // GET /orderbook

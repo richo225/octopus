@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "octopus web",
-    "dateExported": "2023-06-02T15:44:47.199Z",
+    "dateExported": "2023-06-02T16:15:51.415Z",
     "version": "1.1",
     "folders": [],
     "requests": [
@@ -9,12 +9,12 @@
             "_id": "c5cb0c5f-64f8-466d-88fc-1bb54baa58f2",
             "colId": "0ebfa3e0-eeaa-4055-a0a7-1ecd4d636acc",
             "containerId": "",
-            "name": "Hello",
-            "url": "/hello",
+            "name": "Status",
+            "url": "/",
             "method": "GET",
             "sortNum": 5000,
             "created": "2023-05-27T15:29:30.074Z",
-            "modified": "2023-06-02T02:24:08.078Z",
+            "modified": "2023-06-02T16:12:03.832Z",
             "headers": [],
             "params": [],
             "tests": []

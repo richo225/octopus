@@ -22,8 +22,8 @@ async fn main() {
     let trading_platform = Arc::new(Mutex::new(TradingPlatform::new()));
     let trading_platform_state = warp::any().map(move || trading_platform.clone());
 
-    // GET /hello
-    let hello = warp::get().and(warp::path!("hello")).and_then(hello);
+    // GET /
+    let status = warp::get().and(warp::path!()).and_then(status);
 
     // GET /orderbook
     let orderbook = warp::get()
@@ -78,7 +78,7 @@ async fn main() {
         .and(warp::body::json())
         .and_then(match_order);
 
-    let routes = hello
+    let routes = status
         .or(orderbook)
         .or(transactions)
         .or(account)
