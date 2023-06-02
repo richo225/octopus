@@ -65,12 +65,12 @@ async fn main() {
         .and(trading_platform_state.clone())
         .and_then(send);
 
-    // POST /order
+    // POST /submit_order
     let order = warp::post()
-        .and(warp::path!("order"))
+        .and(warp::path!("submit_order"))
         .and(warp::body::json())
         .and(trading_platform_state.clone())
-        .and_then(order);
+        .and_then(submit_order);
 
     let routes = hello
         .or(orderbook)

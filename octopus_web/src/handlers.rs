@@ -1,5 +1,5 @@
 use crate::{
-    core::{AccountArgs, DepositArgs, Order, OrderArgs, SendArgs, WithdrawArgs},
+    core::{AccountArgs, DepositArgs, MatchingEngine, Order, OrderArgs, SendArgs, WithdrawArgs},
     trading_platform::TradingPlatform,
 };
 use octopus_common::errors::AccountError;
@@ -88,8 +88,8 @@ pub async fn send(
     }
 }
 
-// POST /order
-pub async fn order(
+// POST /submit_order
+pub async fn submit_order(
     args: OrderArgs,
     platform: Arc<Mutex<TradingPlatform>>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -101,7 +101,7 @@ pub async fn order(
         side: args.side,
     };
 
-    match p.order(order) {
+    match p.submit_order(order) {
         Ok(receipt) => Ok(warp::reply::json(&receipt)),
         Err(e) => Err(warp::reject::custom(OctopusError(e))),
     }

@@ -87,7 +87,7 @@ impl TradingPlatform {
     }
 
     /// Process a given order and apply the outcome to the accounts involved. Note that there are very few safeguards in place.
-    pub fn order(&mut self, order: Order) -> Result<Receipt, AccountError> {
+    pub fn submit_order(&mut self, order: Order) -> Result<Receipt, AccountError> {
         let signer = &order.signer;
 
         // 1. Check if signer has an account
@@ -135,7 +135,7 @@ mod tests {
         let mut trading_platform = TradingPlatform::new();
 
         assert_eq!(
-            trading_platform.order(Order {
+            trading_platform.submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -156,7 +156,7 @@ mod tests {
         assert!(trading_platform.accounts.deposit("BOB", 100).is_ok());
 
         let alice_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -167,7 +167,7 @@ mod tests {
         assert_eq!(alice_receipt.ordinal, 1);
 
         let bob_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Buy,
@@ -203,7 +203,7 @@ mod tests {
         assert!(trading_platform.accounts.deposit("BOB", 100).is_ok());
 
         let alice_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Sell,
@@ -214,7 +214,7 @@ mod tests {
         assert_eq!(alice_receipt.ordinal, 1);
 
         let bob_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Buy,
@@ -253,7 +253,7 @@ mod tests {
         assert!(trading_platform.accounts.deposit("CHARLIE", 100).is_ok());
 
         let alice_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -264,7 +264,7 @@ mod tests {
         assert_eq!(alice_receipt.ordinal, 1);
 
         let charlie_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(charlie_receipt.ordinal, 2);
 
         let bob_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Buy,
@@ -323,7 +323,7 @@ mod tests {
         assert!(trading_platform.accounts.deposit("CHARLIE", 100).is_ok());
 
         let alice_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -334,7 +334,7 @@ mod tests {
         assert_eq!(alice_receipt.ordinal, 1);
 
         let charlie_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 1,
                 side: Side::Sell,
@@ -345,7 +345,7 @@ mod tests {
         assert_eq!(charlie_receipt.ordinal, 2);
 
         let bob_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Buy,
@@ -381,7 +381,7 @@ mod tests {
         assert!(trading_platform.accounts.deposit("BOB", 100).is_ok());
 
         let alice_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 10,
                 amount: 2,
                 side: Side::Sell,
@@ -392,7 +392,7 @@ mod tests {
         assert_eq!(alice_receipt.ordinal, 1);
 
         let bob_receipt = trading_platform
-            .order(Order {
+            .submit_order(Order {
                 price: 11,
                 amount: 2,
                 side: Side::Sell,
