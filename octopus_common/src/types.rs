@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::cmp::{Ordering, Reverse};
+use std::{
+    cmp::{Ordering, Reverse},
+    collections::{BTreeMap, BinaryHeap},
+};
 
 /// Simplified side of a position as well as order.
 #[derive(Clone, PartialOrd, PartialEq, Eq, Debug, Ord, Deserialize, Serialize)]
@@ -11,7 +14,7 @@ pub enum Side {
 }
 
 /// An order for a specified symbol to buy or sell an amount at a given price.
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Debug, Eq, Deserialize, Serialize)]
 pub struct Order {
     /// Max/min price (depending on the side)
     pub price: u64,
@@ -123,4 +126,11 @@ pub struct OrderArgs {
     pub side: Side,
     pub amount: u64,
     pub price: u64,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct MatchArgs {
+    pub order: Order,
+    pub asks: Vec<Order>,
+    pub bids: Vec<Order>,
 }

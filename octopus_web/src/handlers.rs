@@ -1,10 +1,19 @@
 use crate::{
-    core::{AccountArgs, DepositArgs, MatchingEngine, Order, OrderArgs, SendArgs, WithdrawArgs},
+    core::{
+        AccountArgs, DepositArgs, MatchArgs, MatchingEngine, Order, OrderArgs, SendArgs,
+        WithdrawArgs,
+    },
     trading_platform::TradingPlatform,
 };
-use octopus_common::errors::AccountError;
+use octopus_common::{
+    errors::AccountError,
+    types::{PartialOrder, Side},
+};
 
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, BinaryHeap},
+    sync::Arc,
+};
 use tokio::sync::Mutex;
 use warp::reject::Reject;
 
@@ -105,4 +114,44 @@ pub async fn submit_order(
         Ok(receipt) => Ok(warp::reply::json(&receipt)),
         Err(e) => Err(warp::reject::custom(OctopusError(e))),
     }
+}
+
+// POST /match_order
+pub async fn match_order(args: MatchArgs) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut bids_btreemap: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
+    let mut asks_btreemap: BTreeMap<u64, BinaryHeap<PartialOrder>> = BTreeMap::new();
+
+    args.bids.into_iter().for_each(|o| {
+        let price = o.price;
+        let po = o.into_partial_order(0, price);
+
+        let heap = bids_btreemap.entry(price).or_insert(vec![].into());
+        heap.push(po)
+    });
+
+    args.asks.into_iter().for_each(|o| {
+        let price = o.price;
+        let po = o.into_partial_order(0, price);
+
+        let heap = asks_btreemap.entry(price).or_insert(vec![].into());
+        heap.push(po)
+    });
+
+    println!("{:?}", asks_btreemap);
+    println!("{:?}", bids_btreemap);
+
+    // let mut engine = MatchingEngine {
+    //     ordinal: 0,
+    //     bids: args.bids,
+    //     bids: args.asks,
+    //     history: Vec::new(),
+    // };
+
+    // Process the order using the engine
+
+    // match engine.process(args.order) {
+    Ok(warp::reply::json(&asks_btreemap))
+    // Err(e) => Err(warp::reject::custom(OctopusError(e))),
+    // }
+    // Return the receipt
 }

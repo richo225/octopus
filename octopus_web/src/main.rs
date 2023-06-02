@@ -66,11 +66,17 @@ async fn main() {
         .and_then(send);
 
     // POST /submit_order
-    let order = warp::post()
+    let submit_order = warp::post()
         .and(warp::path!("submit_order"))
         .and(warp::body::json())
         .and(trading_platform_state.clone())
         .and_then(submit_order);
+
+    // POST /match_order
+    let match_order = warp::post()
+        .and(warp::path!("match_order"))
+        .and(warp::body::json())
+        .and_then(match_order);
 
     let routes = hello
         .or(orderbook)
@@ -79,7 +85,8 @@ async fn main() {
         .or(deposit)
         .or(withdraw)
         .or(send)
-        .or(order);
+        .or(submit_order)
+        .or(match_order);
 
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
