@@ -75,11 +75,9 @@ fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str)
         },
         "submit_order" | "SUBMIT_ORDER" => match submit_order(client, host) {
             Ok(receipt) => {
-                println!(
-                    "{}",
-                    success.paint("Order submitted successfully! Your receipt is below:")
-                );
-                println!("{:?}", receipt)
+                println!("{}", success.paint("Order submitted successfully!"));
+                println!("{}", Cyan.paint("Matched with the following:"));
+                print_receipt_table(receipt);
             }
             Err(e) => eprintln!(
                 "{}: {:?}",

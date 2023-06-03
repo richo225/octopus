@@ -1,5 +1,8 @@
 use cli_table::{Cell, CellStruct, Style, Table};
-use octopus_common::tx::Tx;
+use octopus_common::{
+    tx::Tx,
+    types::{PartialOrder, Receipt, Side},
+};
 use yansi::Color::{Cyan, Green, Red};
 
 pub fn print_tx_table(tx: Tx) {
@@ -22,6 +25,38 @@ pub fn print_send_table(tx: (Tx, Tx)) {
             "Operation".cell().bold(true),
             "Account".cell().bold(true),
             "Amount".cell().bold(true),
+        ])
+        .bold(true);
+
+    println!("{}", table.display().unwrap());
+}
+
+pub fn print_receipt_table(receipt: Receipt) {
+    let rows: Vec<Vec<CellStruct>> = receipt
+        .matches
+        .iter()
+        .map(|po: &PartialOrder| {
+            vec![
+                po.ordinal.cell(),
+                match po.side {
+                    Side::Buy => Green.paint("BUY").cell(),
+                    Side::Sell => Red.paint("sell").cell(),
+                },
+                po.price.cell(),
+                po.amount.cell(),
+                po.remaining.cell(),
+            ]
+        })
+        .collect();
+
+    let table = rows
+        .table()
+        .title(vec![
+            "Ordinal".cell().bold(true),
+            "Side".cell().bold(true),
+            "Price".cell().bold(true),
+            "Amount".cell().bold(true),
+            "Remaining".cell().bold(true),
         ])
         .bold(true);
 
