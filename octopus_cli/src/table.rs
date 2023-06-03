@@ -1,7 +1,7 @@
-use cli_table::{Cell, CellStruct, Style, Table};
+use cli_table::{format::Justify, Cell, CellStruct, Style, Table};
 use octopus_common::{
     tx::Tx,
-    types::{PartialOrder, Receipt, Side},
+    types::{PartialOrder, Side},
 };
 use yansi::Color::{Cyan, Green, Red};
 
@@ -31,20 +31,19 @@ pub fn print_send_table(tx: (Tx, Tx)) {
     println!("{}", table.display().unwrap());
 }
 
-pub fn print_receipt_table(receipt: Receipt) {
-    let rows: Vec<Vec<CellStruct>> = receipt
-        .matches
+pub fn print_partial_orders_table(pos: Vec<PartialOrder>) {
+    let rows: Vec<Vec<CellStruct>> = pos
         .iter()
         .map(|po: &PartialOrder| {
             vec![
-                po.ordinal.cell(),
                 match po.side {
                     Side::Buy => Green.paint("BUY").cell(),
-                    Side::Sell => Red.paint("sell").cell(),
+                    Side::Sell => Red.paint("SELL").cell(),
                 },
-                po.price.cell(),
-                po.amount.cell(),
-                po.remaining.cell(),
+                Cyan.paint(po.price).cell().justify(Justify::Center),
+                Cyan.paint(po.amount).cell().justify(Justify::Center),
+                Cyan.paint(po.remaining).cell().justify(Justify::Center),
+                Cyan.paint(po.ordinal).cell().justify(Justify::Center),
             ]
         })
         .collect();
@@ -52,12 +51,21 @@ pub fn print_receipt_table(receipt: Receipt) {
     let table = rows
         .table()
         .title(vec![
-            "Ordinal".cell().bold(true),
             "Side".cell().bold(true),
             "Price".cell().bold(true),
             "Amount".cell().bold(true),
             "Remaining".cell().bold(true),
+            "Ordinal".cell().bold(true),
         ])
+        .bold(true);
+
+    println!("{}", table.display().unwrap());
+}
+
+pub fn print_account_table(balance: u64) {
+    let table = vec![vec![Cyan.paint(balance).cell().justify(Justify::Center)]]
+        .table()
+        .title(vec!["Balance".cell().bold(true)])
         .bold(true);
 
     println!("{}", table.display().unwrap());
@@ -67,16 +75,16 @@ fn generate_tx_row(tx: Tx) -> Vec<CellStruct> {
     match tx {
         Tx::Withdraw { account, amount } => {
             vec![
-                Red.paint("WITHDRAW").cell(),
-                Cyan.paint(account).cell(),
-                Cyan.paint(amount).cell(),
+                Red.paint("WITHDRAW").cell().justify(Justify::Center),
+                Cyan.paint(account).cell().justify(Justify::Center),
+                Cyan.paint(amount).cell().justify(Justify::Center),
             ]
         }
         Tx::Deposit { account, amount } => {
             vec![
-                Green.paint("DEPOSIT").cell(),
-                Cyan.paint(account).cell(),
-                Cyan.paint(amount).cell(),
+                Green.paint("DEPOSIT").cell().justify(Justify::Center),
+                Cyan.paint(account).cell().justify(Justify::Center),
+                Cyan.paint(amount).cell().justify(Justify::Center),
             ]
         }
     }

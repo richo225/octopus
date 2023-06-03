@@ -77,7 +77,7 @@ fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str)
             Ok(receipt) => {
                 println!("{}", success.paint("Order submitted successfully!"));
                 println!("{}", Cyan.paint("Matched with the following:"));
-                print_receipt_table(receipt);
+                print_partial_orders_table(receipt.matches);
             }
             Err(e) => eprintln!(
                 "{}: {:?}",
@@ -86,7 +86,7 @@ fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str)
             ),
         },
         "orderbook" | "ORDERBOOK" => match orderbook(client, host) {
-            Ok(orderbook) => orderbook.iter().for_each(|po| println!("{:?}", po)),
+            Ok(orderbook) => print_partial_orders_table(orderbook),
             Err(e) => eprintln!(
                 "{}: {:?}",
                 alert.paint("Something went wrong"),
@@ -94,9 +94,7 @@ fn process_actions(client: &reqwest::blocking::Client, host: &Url, action: &str)
             ),
         },
         "account" | "ACCOUNT" => match account(client, host) {
-            Ok(balance) => {
-                println!("{}", Cyan.paint(balance))
-            }
+            Ok(balance) => print_account_table(balance),
             Err(e) => eprintln!(
                 "{}: {:?}",
                 alert.paint("Something went wrong"),
