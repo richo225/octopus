@@ -3,7 +3,61 @@ use octopus_common::{
     tx::Tx,
     types::{PartialOrder, Side},
 };
-use yansi::Color::{Cyan, Green, Red};
+use yansi::Color::{Cyan, Green, Red, RGB};
+
+pub fn print_welcome() {
+    let octopus_text = r#"
+
+
+
+
+
+             _                        
+            | |                       
+   ___   ___| |_ ___  _ __  _   _ ___ 
+  / _ \ / __| __/ _ \| '_ \| | | / __|
+ | (_) | (__| || (_) | |_) | |_| \__ \
+  \___/ \___|\__\___/| .__/ \__,_|___/
+                     | |              
+                     |_|   
+
+
+
+
+
+  "#;
+
+    let octopus_image = r#"
+                      ___
+                   .-'   `'.
+                  /         \
+                  |         ;
+                  |         |           ___.--,
+         _.._     |0) ~ (0) |    _.---'`__.-( (_.
+  __.--'`_.. '.__.\    '--. \_.-' ,.--'`     `""`
+ ( ,.--'`   ',__ /./;   ;, '.__.'`    __
+ _`) )  .---.__.' / |   |\   \__..--""  """--.,_
+`---' .'.''-._.-'`_./  /\ '.  \ _.-~~~````~~~-._`-.__.'
+      | |  .' _.-' |  |  \  \  '.               `~---`
+       \ \/ .'     \  \   '. '-._)
+        \/ /        \  \    `=.__`~-.
+        / /\         `) )    / / `"".`\
+  , _.-'.'\ \        / /    ( (     / /
+   `--~`   ) )    .-'.'      '.'.  | (
+          (/`    ( (`          ) )  '-;
+           `      '-;         (-'
+  "#;
+
+    let left_pad = octopus_image.lines().map(|l| l.len()).max().unwrap_or(0);
+    for (octopus_image, octopus_text) in octopus_image.lines().zip(octopus_text.lines()) {
+        println!(
+            "{:width$} {}",
+            RGB(255, 117, 24).paint(octopus_image),
+            RGB(255, 117, 24).paint(octopus_text),
+            width = left_pad
+        );
+    }
+}
 
 pub fn print_tx_table(tx: Tx) {
     let table = vec![generate_tx_row(tx)]
@@ -20,6 +74,21 @@ pub fn print_tx_table(tx: Tx) {
 
 pub fn print_send_table(tx: (Tx, Tx)) {
     let table = vec![generate_tx_row(tx.0), generate_tx_row(tx.1)]
+        .table()
+        .title(vec![
+            "Operation".cell().bold(true),
+            "Account".cell().bold(true),
+            "Amount".cell().bold(true),
+        ])
+        .bold(true);
+
+    println!("{}", table.display().unwrap());
+}
+
+pub fn print_txlog_table(txs: Vec<Tx>) {
+    let rows: Vec<Vec<CellStruct>> = txs.iter().map(|tx| generate_tx_row(tx.clone())).collect();
+
+    let table = rows
         .table()
         .title(vec![
             "Operation".cell().bold(true),
