@@ -1,5 +1,6 @@
-use octopus_engine::{errors::AccountError, tx::Tx};
 use std::collections::HashMap;
+
+use crate::{errors::AccountError, tx::Tx};
 
 /// A type for managing accounts and their current currency balance
 #[derive(Debug, Clone)]

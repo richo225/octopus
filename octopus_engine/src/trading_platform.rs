@@ -1,8 +1,10 @@
 use crate::{
     accounting::Accounts,
-    core::{MatchingEngine, Order, PartialOrder, Receipt, Side},
+    engine::MatchingEngine,
+    errors::AccountError,
+    tx::Tx,
+    types::{Order, PartialOrder, Receipt, Side},
 };
-use octopus_engine::{errors::AccountError, tx::Tx};
 
 pub struct TradingPlatform {
     engine: MatchingEngine,
@@ -113,6 +115,8 @@ impl TradingPlatform {
 mod tests {
     // reduce the warnings for naming tests
     #![allow(non_snake_case)]
+
+    use crate::types::{Order, Side};
 
     use super::*;
 

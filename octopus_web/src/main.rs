@@ -1,14 +1,11 @@
-mod accounting;
-mod core;
 mod handlers;
-mod trading_platform;
 
 #[macro_use]
 extern crate log;
 extern crate pretty_env_logger;
 
 use handlers::*;
-use trading_platform::TradingPlatform;
+use octopus_engine::trading_platform::TradingPlatform;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
