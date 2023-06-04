@@ -3,12 +3,8 @@ name = "octopus-web"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-name = "octopus_common"
-path = "../octopus_common/src/lib.rs"
-
-
 [dependencies]
+octopus-engine = { version = "*", path = "../octopus_engine" }
 log = "0.4.17"
 pretty_env_logger = "0.5.0"
 warp = "0.3.5"

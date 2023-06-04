@@ -1,5 +1,5 @@
 use cli_table::{format::Justify, Cell, CellStruct, Style, Table};
-use octopus_common::{
+use octopus_engine::{
     tx::Tx,
     types::{PartialOrder, Side},
 };

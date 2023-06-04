@@ -2,7 +2,7 @@ use crate::{
     accounting::Accounts,
     core::{MatchingEngine, Order, PartialOrder, Receipt, Side},
 };
-use octopus_common::{errors::AccountError, tx::Tx};
+use octopus_engine::{errors::AccountError, tx::Tx};
 
 pub struct TradingPlatform {
     engine: MatchingEngine,

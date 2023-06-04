@@ -13,13 +13,9 @@ categories = ["command-line-interface", "finance"]
 [badges]
 maintenance = { status = "actively-developed" }
 
-[lib]
-name = "octopus_common"
-path = "../octopus_common/src/lib.rs"
-
-
 [dependencies]
 cli-table = "0.4.7"
+octopus-engine = { version = "0.1.0", path = "../octopus_engine" }
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 serde = { version = "1.0.163", features = ["derive"] }
 yansi = "0.5.1"
