@@ -2,8 +2,13 @@
 name = "octopus-engine"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Richard Bates <rich.bates@protonmail.com>"]
+description = "Trading engine algorithm library🐙"
+repository = "https://github.com/richo225/octopus"
+license-file = "../LICENSE.txt"
+readme = "../README.md"
+keywords = ["trading", "engine", "octopus", "platform"]
+categories = ["algorithms", "finance"]
 
 [dependencies]
 cli-table = "0.4.7"
