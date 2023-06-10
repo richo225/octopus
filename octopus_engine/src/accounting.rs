@@ -8,6 +8,12 @@ pub struct Accounts {
     pub accounts: HashMap<String, u64>,
 }
 
+impl Default for Accounts {
+    fn default() -> Self {
+        Accounts::new()
+    }
+}
+
 impl Accounts {
     /// Returns an empty instance of the [`Accounts`] type
     pub fn new() -> Self {

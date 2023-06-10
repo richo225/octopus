@@ -12,6 +12,12 @@ pub struct TradingPlatform {
     pub transactions: Vec<Tx>,
 }
 
+impl Default for TradingPlatform {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TradingPlatform {
     pub fn new() -> Self {
         TradingPlatform {
