@@ -1,0 +1,14 @@
+[package]
+name = "octopus-engine"
+version = "0.1.0"
+edition = "2021"
+authors = ["Richard Bates <rich.bates@protonmail.com>"]
+description = "Trading engine algorithm library 🐙"
+repository = "https://github.com/richo225/octopus"
+license-file = "../LICENSE.txt"
+readme = "../README.md"
+keywords = ["trading", "engine", "octopus", "platform"]
+categories = ["algorithms", "finance"]
+
+[dependencies]
+serde = { version = "1.0.163", features = ["derive"] }

@@ -5,8 +5,8 @@ edition = "2021"
 authors = ["Richard Bates <rich.bates@protonmail.com>"]
 description = "Trading engine CLI for submitting and matching orders. 🐙"
 repository = "https://github.com/richo225/octopus"
-license = "MIT OR Apache-2.0"
-license-file = "LICENSE.txt"
+license-file = "../LICENSE.txt"
+readme = "../README.md"
 keywords = ["cli", "trading", "engine", "octopus"]
 categories = ["command-line-interface", "finance"]
 
@@ -15,7 +15,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 cli-table = "0.4.7"
-octopus-common = { version = "*", path = "../octopus_common" }
+octopus-engine = { version = "0.1.0", path = "../octopus_engine" }
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 serde = { version = "1.0.163", features = ["derive"] }
 yansi = "0.5.1"
