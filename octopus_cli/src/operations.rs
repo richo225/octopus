@@ -1,8 +1,10 @@
 use octopus_engine::{
+    errors::{OctopusError},
     tx::Tx,
     types::{DepositArgs, OrderArgs, PartialOrder, Receipt, SendArgs, Side, WithdrawArgs},
 };
 use reqwest::Url;
+
 use std::{error::Error, io};
 use yansi::Color::{Blue, Cyan};
 
@@ -31,13 +33,16 @@ pub fn deposit(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box
 
     let body = DepositArgs { signer, amount };
 
-    let response: Tx = client
+    let response = client
         .post(host.join("/account/deposit")?)
         .json(&body)
-        .send()?
-        .json::<Tx>()?;
+        .send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<Tx>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn withdraw(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Box<dyn Error>> {
@@ -54,13 +59,16 @@ pub fn withdraw(client: &reqwest::blocking::Client, host: &Url) -> Result<Tx, Bo
 
     let body = WithdrawArgs { signer, amount };
 
-    let response: Tx = client
+    let response = client
         .post(host.join("/account/withdraw")?)
         .json(&body)
-        .send()?
-        .json::<Tx>()?;
+        .send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<Tx>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn send(client: &reqwest::blocking::Client, host: &Url) -> Result<(Tx, Tx), Box<dyn Error>> {
@@ -83,13 +91,16 @@ pub fn send(client: &reqwest::blocking::Client, host: &Url) -> Result<(Tx, Tx), 
         recipient,
     };
 
-    let response: (Tx, Tx) = client
+    let response = client
         .post(host.join("/account/send")?)
         .json(&body)
-        .send()?
-        .json::<(Tx, Tx)>()?;
+        .send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<(Tx, Tx)>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn submit_order(
@@ -126,13 +137,16 @@ pub fn submit_order(
         signer,
     };
 
-    let response: Receipt = client
+    let response = client
         .post(host.join("/submit_order")?)
         .json(&body)
-        .send()?
-        .json::<Receipt>()?;
+        .send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<Receipt>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn orderbook(
@@ -141,12 +155,13 @@ pub fn orderbook(
 ) -> Result<Vec<PartialOrder>, Box<dyn Error>> {
     println!("{}", Cyan.paint("Printing orderbook....."));
 
-    let response: Vec<PartialOrder> = client
-        .get(host.join("/orderbook")?)
-        .send()?
-        .json::<Vec<PartialOrder>>()?;
+    let response = client.get(host.join("/orderbook")?).send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<Vec<PartialOrder>>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn account(client: &reqwest::blocking::Client, host: &Url) -> Result<u64, Box<dyn Error>> {
@@ -154,22 +169,26 @@ pub fn account(client: &reqwest::blocking::Client, host: &Url) -> Result<u64, Bo
 
     println!("{}", Cyan.paint("Checking account balance....."));
 
-    let response: u64 = client
+    let response = client
         .get(host.join("/account")?)
         .query(&[("signer", &signer)])
-        .send()?
-        .json::<u64>()?;
+        .send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<u64>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }
 
 pub fn txlog(client: &reqwest::blocking::Client, host: &Url) -> Result<Vec<Tx>, Box<dyn Error>> {
     println!("{}", Cyan.paint("Printing txlog....."));
 
-    let response: Vec<Tx> = client
-        .get(host.join("/transactions")?)
-        .send()?
-        .json::<Vec<Tx>>()?;
+    let response = client.get(host.join("/transactions")?).send()?;
 
-    Ok(response)
+    if response.status() == reqwest::StatusCode::OK {
+        Ok(response.json::<Vec<Tx>>()?)
+    } else {
+        Err(Box::new(response.json::<OctopusError>()?))
+    }
 }

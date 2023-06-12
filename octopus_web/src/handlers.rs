@@ -10,7 +10,7 @@ use octopus_engine::{
 use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use warp::{hyper::StatusCode, reject::Reject, reply, Rejection, Reply};
+use warp::{reject::Reject, Rejection, Reply};
 
 #[derive(Debug, Serialize)]
 pub struct OctopusError(AccountError);
