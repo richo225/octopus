@@ -83,7 +83,8 @@ async fn main() {
         .or(withdraw)
         .or(send)
         .or(submit_order)
-        .or(match_order);
+        .or(match_order)
+        .recover(handle_rejection);
 
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
