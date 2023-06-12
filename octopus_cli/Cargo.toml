@@ -1,6 +1,6 @@
 [package]
 name = "octopus-cli"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Richard Bates <rich.bates@protonmail.com>"]
 description = "Trading engine CLI for submitting and matching orders. 🐙"
@@ -15,7 +15,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 cli-table = "0.4.7"
-octopus-engine = { version = "0.1.0", path = "../octopus_engine" }
+octopus-engine = { version = "0.2.0", path = "../octopus_engine" }
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 serde = { version = "1.0.163", features = ["derive"] }
 yansi = "0.5.1"

@@ -26,7 +26,7 @@
   </a>
 </p>
 
-![demo](https://github.com/richo225/octopus/assets/18379191/9309a071-3881-419e-a8fc-7dde236a840d)
+![demo](https://github.com/richo225/octopus/assets/18379191/0a3efa31-f6c3-4b40-9942-e7c14d88e019)
 
 ## Installation
 
@@ -56,6 +56,18 @@ To run the crate, use the following command in your terminal:
 
 ```shell
 octopus-cli
+```
+
+If you would like to run the octopus server locally, execute the binary with:
+
+```shell
+RUST_LOG=trace cargo run --bin octopus-web
+```
+
+And then run the CLI, pointing to the local server:
+
+```shell
+cargo run --bin octopus-cli -- http://localhost:8080
 ```
 
 Full documentation for the engine can be found at https://docs.rs/octopus-engine/0.1.0/octopus_engine/
